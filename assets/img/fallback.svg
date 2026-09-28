@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="800" height="600" role="img" aria-label="Al-Elahi Travels">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0A2913"/>
+      <stop offset="1" stop-color="#1B5E20"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#DCBB55"/>
+      <stop offset="1" stop-color="#9C7A15"/>
+    </linearGradient>
+    <pattern id="pat" width="60" height="60" patternUnits="userSpaceOnUse">
+      <path d="M30 0 L60 30 L30 60 L0 30 Z" fill="none" stroke="#C9A227" stroke-opacity=".14" stroke-width="1.2"/>
+    </pattern>
+  </defs>
+  <rect width="800" height="600" fill="url(#g)"/>
+  <rect width="800" height="600" fill="url(#pat)"/>
+  <g opacity=".95">
+    <path d="M330 400 V250 a70 70 0 0 1 140 0 V400 Z" fill="none" stroke="url(#gold)" stroke-width="5"/>
+    <path d="M400 165 a18 18 0 0 1 18 18 v12 h-36 v-12 a18 18 0 0 1 18-18z" fill="url(#gold)"/>
+    <path d="M262 400 h276" stroke="url(#gold)" stroke-width="5" stroke-linecap="round"/>
+    <path d="M310 400 v-70 a20 20 0 0 1 40 0 v70" fill="none" stroke="#C9A227" stroke-opacity=".6" stroke-width="3"/>
+    <path d="M450 400 v-70 a20 20 0 0 1 40 0 v70" fill="none" stroke="#C9A227" stroke-opacity=".6" stroke-width="3"/>
+  </g>
+  <text x="400" y="470" text-anchor="middle" font-family="Georgia, serif" font-size="34" fill="#ffffff" letter-spacing="4">AL-ELAHI TRAVELS</text>
+  <text x="400" y="505" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#C9A227" letter-spacing="5">UMRAH BUS SERVICE · RIYADH</text>
+</svg>
