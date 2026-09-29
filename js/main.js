@@ -20,6 +20,74 @@
   var $  = function (s, c) { return (c || document).querySelector(s); };
   var $$ = function (s, c) { return Array.prototype.slice.call((c || document).querySelectorAll(s)); };
 
+  /* ---------------- 0. LAZY PHOTO SCANS ----------------
+     The bus and hotel folders are read with probe requests (1.jpg, 2.jpg …),
+     which is 150+ image downloads. Nothing is scanned until the matching section
+     comes close to the viewport, so the first paint stays light. */
+  function whenNear(el, cb, margin) {
+    if (!el || !("IntersectionObserver" in window)) { cb(); return; }
+    var obs = new IntersectionObserver(function (entries) {
+      for (var i = 0; i < entries.length; i++) {
+        if (entries[i].isIntersecting) { obs.disconnect(); cb(); return; }
+      }
+    }, { rootMargin: (margin || 600) + "px 0px" });
+    obs.observe(el);
+  }
+
+  /* Does a photo folder hold 1.jpg, 2.jpg, 3.jpg …? (stops at the first gap)
+     Over http(s) this only sends HEAD requests, so learning that a hotel holds
+     12 photos costs twelve tiny header checks instead of twelve full downloads.
+     On file:// (the local preview) HEAD is not allowed, so the image itself is
+     loaded — the browser cache then serves it again when it is displayed. */
+  var CAN_HEAD = location.protocol !== "file:";
+  function scanFolder(base, max, done) {
+    var found = [];
+    var n = 1;
+    (function next() {
+      if (n > max) return done(found);
+      var pic = { n: n, src: base + n + ".jpg" };
+      if (CAN_HEAD) {
+        fetch(pic.src, { method: "HEAD", priority: "low" }).then(function (res) {
+          if (!res.ok) return done(found);
+          found.push(pic); n++; next();
+        })["catch"](function () { done(found); });
+      } else {
+        var im = new Image();
+        im.onload = function () { found.push(pic); n++; next(); };
+        im.onerror = function () { done(found); };
+        im.src = pic.src;
+      }
+    })();
+  }
+
+  /* Scan a list of folders with a small concurrency: quick to finish, yet the
+     browser's connections stay mostly free for the photos that are on screen. */
+  function scanFolders(tasks, limit, done) {
+    var i = 0, live = 0, finished = 0;
+    function pump() {
+      while (live < limit && i < tasks.length) {
+        live++;
+        tasks[i++](function () {
+          live--; finished++;
+          if (finished === tasks.length) { if (done) done(); return; }
+          pump();
+        });
+      }
+    }
+    if (!tasks.length) { if (done) done(); return; }
+    pump();
+  }
+
+  /* Carousels only move while they are on screen (and the tab is visible), so a
+     slider the visitor has scrolled past stops using battery / bandwidth. */
+  function onScreenWatcher(el, set) {
+    if (!el || !("IntersectionObserver" in window)) { set(true); return; }
+    set(false);
+    new IntersectionObserver(function (entries) {
+      set(!!entries[0].isIntersecting);
+    }, { threshold: 0.12 }).observe(el);
+  }
+
   /* ---------------- 1. STICKY HEADER ---------------- */
   var header = $(".site-header");
   function onScrollHeader() {
@@ -107,6 +175,33 @@
 
   /* ---------------- 5. HERO SLIDER ---------------- */
   var slides = $$(".hero-slide");
+
+  /* The five hero photos are ~1.2 MB together, so the page only fetches the first
+     one: the second follows right after and the rest when the browser is idle.
+     (≤760px the portrait crops marked data-src-m are used.) */
+  function heroImageURL(im) {
+    var mobile = window.matchMedia && window.matchMedia("(max-width: 760px)").matches;
+    return (mobile && im.getAttribute("data-src-m")) || im.getAttribute("data-src");
+  }
+  function heroLoad(i) {
+    var im = slides[i] ? $("img", slides[i]) : null;
+    if (im && !im.getAttribute("src") && im.getAttribute("data-src")) {
+      im.setAttribute("src", heroImageURL(im));
+    }
+  }
+  function heroLoadRest(from) {
+    for (var i = from; i < slides.length; i++) heroLoad(i);
+  }
+  if (slides.length) {
+    heroLoad(0);
+    setTimeout(function () { heroLoad(1); }, 900);
+    if ("requestIdleCallback" in window) {
+      requestIdleCallback(function () { heroLoadRest(2); }, { timeout: 3000 });
+    } else {
+      setTimeout(function () { heroLoadRest(2); }, 2500);
+    }
+  }
+
   if (slides.length > 1) {
     var sIdx = 0;
     slides[0].classList.add("is-active");
@@ -818,7 +913,12 @@
     track.addEventListener("touchstart", function () { hold(9000); }, { passive: true });
     track.addEventListener("focusin", function () { hold(9000); });
 
+    /* Auto-slide stops when the row is off screen or the tab is in the background */
+    var onScreen = true;
+    onScreenWatcher(track, function (v) { onScreen = v; });
+
     setInterval(function () {
+      if (!onScreen || document.hidden) return;
       if (!hovering && Date.now() > holdUntil) moveBy(1);
     }, 4600);
   }
@@ -908,20 +1008,18 @@
       }
     }
 
-    function probePhoto(hotel, i) {
-      var src = "assets/img/hotels/" + hotel.slug + "/" + i + ".jpg";
-      var probe = new Image();
-      probe.onload = function () {
-        hotel.photos.push({
-          hotel: hotel,
-          src: src,
-          alt: hotel.name + " — " + starLabel(hotel.stars) + " hotel near Masjid al-Haram, Makkah"
+    function scanHotel(hotel, then) {
+      scanFolder("assets/img/hotels/" + hotel.slug + "/", HOTEL_MAX_PHOTOS, function (l) {
+        hotel.photos = l.map(function (p) {
+          return {
+            hotel: hotel,
+            src: p.src,
+            alt: hotel.name + " — " + starLabel(hotel.stars) + " hotel near Masjid al-Haram, Makkah"
+          };
         });
-        if (i < HOTEL_MAX_PHOTOS) probePhoto(hotel, i + 1);
-        else hotelDone(hotel);
-      };
-      probe.onerror = function () { hotelDone(hotel); };
-      probe.src = src;
+        hotelDone(hotel);
+        if (then) then();
+      });
     }
 
     /* --- viewer (activeShots = the list being viewed: one hotel, or all) --- */
@@ -997,11 +1095,17 @@
       if (e.key === "ArrowRight") stepShot(1);
     });
 
-    /* Kick off the photo scan (1.jpg, 2.jpg, 3.jpg … per hotel folder) */
-    HOTELS.forEach(function (hotel) {
-      hotel.photos = [];
-      probePhoto(hotel, 1);
-    });
+    /* Kick off the photo scan (1.jpg, 2.jpg, 3.jpg … per hotel folder) — but only
+       when the gallery preview is about to be reached, never on page load. */
+    var scanAnchor = $("[data-gl-track='hotels']") || $(".gl-carousels") || $("#hotelModal");
+    if (scanAnchor) whenNear(scanAnchor, function () {
+      scanFolders(HOTELS.map(function (hotel) {
+        return function (next) {
+          hotel.photos = [];
+          scanHotel(hotel, next);
+        };
+      }), 4);
+    }, 500);
   }
 
   /* ---------------- 15. BUS PHOTOS (gallery carousels + optional bus section) -------- */
@@ -1092,18 +1196,16 @@
       box.addEventListener("mouseleave", function () { if (photos.length > 1) start(); });
     }
 
-    /* Photos are read as 1.jpg, 2.jpg, 3.jpg … inside assets/img/buses/<vip|normal>/ */
-    var n = 1;
-    (function probe() {
-      var src = "assets/img/buses/" + key + "/" + n + ".jpg";
-      var im = new Image();
-      im.onload = function () {
-        photos.push(src);
-        if (n < 20) { n++; probe(); } else build();
-      };
-      im.onerror = function () { build(); };
-      im.src = src;
-    })();
+    /* Photos are read as 1.jpg, 2.jpg, 3.jpg … inside assets/img/buses/<vip|normal>/
+       — the scan starts when this carousel comes near the viewport. */
+    var glTrack = $("[data-gl-track='" + key + "']");
+    var scanAnchor = glTrack || box;
+    if (scanAnchor) whenNear(scanAnchor, function () {
+      scanFolder("assets/img/buses/" + key + "/", 20, function (l) {
+        l.forEach(function (p) { photos.push(p.src); });
+        build();
+      });
+    }, 500);
   });
 
   /* ---------------- 15b. ABOUT-SECTION MEDIA CAROUSEL (buses → hotel rooms) ---
@@ -1143,9 +1245,17 @@
     var photos = [];
     var idx = 0;
     var timer = null;
+    var retry = null;
     var hovering = false;
     var dotsOn = false;
     var counter = null;
+    var holdUntil = 0;
+    var visible = true;
+    var scannedFolders = 0;
+    var allScanned = false;
+
+    /* The rotation runs only while the carousel is on screen */
+    onScreenWatcher(box, function (v) { visible = v; start(); });
 
     function load(i) {
       if (!photos.length) return;
@@ -1165,15 +1275,31 @@
       if (counter) counter.textContent = (idx + 1) + " / " + photos.length;
     }
 
-    function stop() { if (timer) clearInterval(timer); timer = null; }
+    function stop() {
+      if (timer) clearInterval(timer);
+      timer = null;
+      if (retry) clearTimeout(retry);
+      retry = null;
+    }
     function start() {
       stop();
-      if (photos.length < 2) return;
-      timer = setInterval(function () {
-        if (hovering) return;
-        if (hotelModal && hotelModal.classList.contains("is-open")) return;   // paused while the viewer is open
-        show(idx + 1);
-      }, 4600);
+      if (photos.length < 2 || !visible) return;
+      timer = setInterval(tick, 4600);
+    }
+    /* Move on only once the next photo is ready, so a slide never shows an empty
+       grey frame while its image is still downloading. */
+    function tick() {
+      if (!visible || document.hidden || hovering) return;
+      if (Date.now() < holdUntil) return;
+      if (hotelModal && hotelModal.classList.contains("is-open")) return;   // paused while the viewer is open
+      if (retry) { clearTimeout(retry); retry = null; }
+      var nslide = stage.children[(idx + 1) % photos.length];
+      var nimg = nslide ? nslide.firstChild : null;
+      if (nimg) {
+        if (!nimg.getAttribute("src")) nimg.setAttribute("src", nslide.getAttribute("data-src"));
+        if (!nimg.complete) { retry = setTimeout(tick, 400); return; }
+      }
+      show(idx + 1);
     }
 
     function openPhoto(i) {
@@ -1181,8 +1307,13 @@
       if (p && p.basket && openShotViewer) openShotViewer(p.basket, p.at);
     }
 
-    function build() {
+    /* --- assemble the slide list (buses first, then the hotels) ---
+       The folders are scanned in parallel, so the list only ever grows: both bus
+       folders must be in before anything is painted, and the hotels are appended
+       in folder order (a hotel is skipped until the one before it has scanned). */
+    function compose() {
       var list = [];
+      if (busesScanned < 2) return list;
 
       function addBuses(arr, vip) {
         var name = vip ? "VIP Luxury Bus" : "Umrah Bus (Normal)";
@@ -1233,88 +1364,123 @@
 
       if (buses.normal.length) addBuses(buses.normal, false);
       if (buses.vip.length) addBuses(buses.vip, true);
-      hotels.forEach(function (entry) { if (entry.photos.length) addHotel(entry); });
+      for (var i = 0; i < hotels.length; i++) {
+        if (!hotels[i].scanned) break;
+        if (hotels[i].photos.length) addHotel(hotels[i]);
+      }
+      return list;
+    }
 
+    function addSlide(p, i) {
+      var slide = document.createElement("div");
+      slide.className = "bus-slide" + (i === 0 ? " is-active" : "");
+      slide.setAttribute("role", "button");
+      slide.setAttribute("tabindex", "0");
+      slide.setAttribute("title", "Click to view full size");
+      slide.setAttribute("data-src", p.src);
+      slide.innerHTML = '<img alt="' + p.alt + '">';
+      slide.addEventListener("click", function () { openPhoto(i); });
+      slide.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openPhoto(i); }
+      });
+      stage.appendChild(slide);
+
+      if (dots) {
+        var d = document.createElement("button");
+        d.type = "button";
+        d.className = "bus-dot" + (i === 0 ? " is-active" : "");
+        d.setAttribute("aria-label", "Show photo " + (i + 1) + " of " + photos.length);
+        d.addEventListener("click", function () { show(i); start(); });
+        dots.appendChild(d);
+      }
+    }
+
+    /* ≤12 photos → dot navigation, otherwise the "12 / 189" counter chip. The
+       choice can only be made once every folder has been scanned. */
+    function applyPager() {
+      if (!allScanned) return;
+      dotsOn = !!dots && photos.length <= MAX_DOTS;
+      if (dots) dots.hidden = !dotsOn;
+      if (counter) counter.hidden = dotsOn;
+    }
+
+    function folderDone() {
+      scannedFolders++;
+      if (scannedFolders >= 2 + HOTELS.length) { allScanned = true; applyPager(); }
+    }
+
+    /* The folders arrive one after another: the first slides are painted as soon
+       as the bus photos are known and every hotel is appended as it scans in, so
+       the visitor never stares at an empty frame while ~150 photos are probed. */
+    function render() {
+      if (!photos.length) { build(); return; }
+      var list = compose();
+      if (list.length <= photos.length) return;
+      for (var i = photos.length; i < list.length; i++) addSlide(list[i], i);
       photos = list;
+      box.setAttribute("data-count", photos.length);
+      if (counter) counter.textContent = (idx + 1) + " / " + photos.length;
+      if (flag) flag.textContent = photos[idx].flag;
+    }
+
+    function build() {
+      photos = compose();
       if (!photos.length) return;
 
       box.setAttribute("data-count", photos.length);
-      dotsOn = !!dots && photos.length <= MAX_DOTS;
-      if (dots && !dotsOn) dots.hidden = true;
-      if (!dotsOn) {
-        counter = document.createElement("span");
-        counter.className = "bus-count";
-        box.appendChild(counter);
-      }
+      if (dots) dots.hidden = true;      // decided by applyPager() when the scan ends
+      counter = document.createElement("span");
+      counter.className = "bus-count";
+      box.appendChild(counter);
 
-      photos.forEach(function (p, i) {
-        var slide = document.createElement("div");
-        slide.className = "bus-slide" + (i === 0 ? " is-active" : "");
-        slide.setAttribute("role", "button");
-        slide.setAttribute("tabindex", "0");
-        slide.setAttribute("title", "Click to view full size");
-        slide.setAttribute("data-src", p.src);
-        slide.innerHTML = '<img alt="' + p.alt + '">';
-        slide.addEventListener("click", function () { openPhoto(i); });
-        slide.addEventListener("keydown", function (e) {
-          if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openPhoto(i); }
-        });
-        stage.appendChild(slide);
-
-        if (dotsOn) {
-          var d = document.createElement("button");
-          d.type = "button";
-          d.className = "bus-dot" + (i === 0 ? " is-active" : "");
-          d.setAttribute("aria-label", "Show photo " + (i + 1) + " of " + photos.length);
-          d.addEventListener("click", function () { show(i); start(); });
-          dots.appendChild(d);
-        }
-      });
-
+      photos.forEach(addSlide);
       show(0);
       start();
     }
 
-    /* Photos are read as 1.jpg, 2.jpg, 3.jpg … inside each folder */
-    function probe(base, max, done) {
-      var found = [];
-      var n = 1;
-      (function next() {
-        if (n > max) return done(found);
-        var src = base + n + ".jpg";
-        var im = new Image();
-        im.onload = function () { found.push({ n: n, src: src }); n++; next(); };
-        im.onerror = function () { done(found); };
-        im.src = src;
-      })();
-    }
-
     var buses = { normal: [], vip: [] };
-    var hotels = [];                       // [{ hotel: …, photos: [{n, src}] }]
-    var pending = 2 + HOTELS.length;
+    var busesScanned = 0;
+    var hotels = [];                       // [{ hotel: …, photos: [{n, src}…], scanned }]
 
-    function ready() {
-      if (--pending) return;
-
-      /* 10, 11, 12 first, then the rest of the normal fleet */
-      var first = [];
-      FIRST_UP.forEach(function (num) {
-        for (var i = 0; i < buses.normal.length; i++) {
-          if (buses.normal[i].n === num) { first.push(buses.normal.splice(i, 1)[0]); break; }
-        }
+    /* Scan the folders only when the carousel is about to be reached (never on
+       page load) and paint the slides as each folder arrives. */
+    whenNear(box, function () {
+      scanFolder("assets/img/buses/normal/", 20, function (l) {
+        buses.normal = l;
+        /* 10, 11, 12 first, then the rest of the normal fleet */
+        var first = [];
+        FIRST_UP.forEach(function (num) {
+          for (var i = 0; i < buses.normal.length; i++) {
+            if (buses.normal[i].n === num) { first.push(buses.normal.splice(i, 1)[0]); break; }
+          }
+        });
+        buses.normal = first.concat(buses.normal);
+        busesScanned++;
+        render();
+        folderDone();
       });
-      buses.normal = first.concat(buses.normal);
-
-      build();
-    }
-
-    probe("assets/img/buses/normal/", 20, function (l) { buses.normal = l; ready(); });
-    probe("assets/img/buses/vip/", 20, function (l) { buses.vip = l; ready(); });
-    HOTELS.forEach(function (h) {
-      var entry = { hotel: h, photos: [] };
-      hotels.push(entry);
-      probe("assets/img/hotels/" + h.slug + "/", HOTEL_MAX_PHOTOS, function (l) { entry.photos = l; ready(); });
-    });
+      scanFolder("assets/img/buses/vip/", 20, function (l) {
+        buses.vip = l;
+        busesScanned++;
+        render();
+        folderDone();
+      });
+      /* the hotel folders are scanned four at a time (they are only reached later
+         in the rotation) so the probes never crowd out the visible slides */
+      scanFolders(HOTELS.map(function (h) {
+        return function (next) {
+          var entry = { hotel: h, photos: [], scanned: false };
+          hotels.push(entry);
+          scanFolder("assets/img/hotels/" + h.slug + "/", HOTEL_MAX_PHOTOS, function (l) {
+            entry.photos = l;
+            entry.scanned = true;
+            render();
+            folderDone();
+            next();
+          });
+        };
+      }), 4);
+    }, 400);
 
     if (prevBtn) prevBtn.addEventListener("click", function () { show(idx - 1); start(); });
     if (nextBtn) nextBtn.addEventListener("click", function () { show(idx + 1); start(); });
@@ -1323,7 +1489,8 @@
     box.addEventListener("mouseleave", function () { hovering = false; });
     box.addEventListener("focusin", function () { hovering = true; });
     box.addEventListener("focusout", function () { hovering = false; });
-    box.addEventListener("pointerdown", function () { hovering = true; });
+    /* a tap / swipe on mobile only pauses the rotation for a moment */
+    box.addEventListener("pointerdown", function () { holdUntil = Date.now() + 9000; });
   })();
 
   /* ---------------- 16. SEO-ish: current year + active nav safe-guard ---- */
