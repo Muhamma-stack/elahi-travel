@@ -1106,6 +1106,226 @@
     })();
   });
 
+  /* ---------------- 15b. ABOUT-SECTION MEDIA CAROUSEL (buses → hotel rooms) ---
+     The carousel next to "A Trusted Umrah Travel Service Based in Riyadh" runs
+     through, in order: the three newest bus photos (10, 11, 12), the rest of the
+     normal fleet, the VIP bus, and then the hotels — each hotel's view photo
+     followed by its rooms. Photos load on demand (4 ahead of the current slide),
+     so a 100+ photo rotation never slows the home page down. Clicking a slide
+     opens it full size in the shared photo viewer.                            */
+  (function () {
+    var box = $("[data-bus-carousel='about']");
+    var stage = $("[data-bus-stage='about']");
+    if (!box || !stage) return;
+
+    var dots = $("[data-bus-dots='about']");
+    var flag = $("[data-bus-flag='about']");
+    var prevBtn = $("[data-bus-prev='about']");
+    var nextBtn = $("[data-bus-next='about']");
+
+    var HOTELS = [
+      { name: "Al Olyan Hotel", stars: 4, slug: "al-olyan" },
+      { name: "Al Wafideen Hotel", stars: 4, slug: "al-wafideen" },
+      { name: "Bilal Hotel", stars: 3, slug: "bilal" },
+      { name: "Emaar Al Sultan Hotel", stars: 4, slug: "emaar-al-sultan" },
+      { name: "Holiday Inn Hotel", stars: 5, slug: "holiday-inn" },
+      { name: "M Millennium Hotel", stars: 5, slug: "m-millennium" },
+      { name: "Palestine Hotel", stars: 4, slug: "palestine" },
+      { name: "Park House Hotel", stars: 4, slug: "park-house" },
+      { name: "Rizq Palace Hotel", stars: 4, slug: "rizq-palace" },
+      { name: "Voco Hotel", stars: 5, slug: "voco" }
+    ];
+    var HOTEL_MAX_PHOTOS = 12;      // 1.jpg = hotel view, 2.jpg… = the rooms
+    var MAX_DOTS = 12;              // more photos than this → counter instead of dots
+    var FIRST_UP = [10, 11, 12];    // these three bus photos open the rotation
+    var AHEAD = 4;                  // how many slides are loaded ahead of the show
+
+    var photos = [];
+    var idx = 0;
+    var timer = null;
+    var hovering = false;
+    var dotsOn = false;
+    var counter = null;
+
+    function load(i) {
+      if (!photos.length) return;
+      var s = stage.children[((i % photos.length) + photos.length) % photos.length];
+      if (!s) return;
+      var im = s.firstChild;
+      if (im && !im.getAttribute("src")) im.setAttribute("src", s.getAttribute("data-src"));
+    }
+
+    function show(i) {
+      if (!photos.length) return;
+      idx = (i + photos.length) % photos.length;
+      $$(".bus-slide", stage).forEach(function (s, k) { s.classList.toggle("is-active", k === idx); });
+      if (dotsOn) $$(".bus-dot", dots).forEach(function (d, k) { d.classList.toggle("is-active", k === idx); });
+      for (var k = 0; k < AHEAD; k++) load(idx + k);
+      if (flag) flag.textContent = photos[idx].flag;
+      if (counter) counter.textContent = (idx + 1) + " / " + photos.length;
+    }
+
+    function stop() { if (timer) clearInterval(timer); timer = null; }
+    function start() {
+      stop();
+      if (photos.length < 2) return;
+      timer = setInterval(function () {
+        if (hovering) return;
+        if (hotelModal && hotelModal.classList.contains("is-open")) return;   // paused while the viewer is open
+        show(idx + 1);
+      }, 4600);
+    }
+
+    function openPhoto(i) {
+      var p = photos[i];
+      if (p && p.basket && openShotViewer) openShotViewer(p.basket, p.at);
+    }
+
+    function build() {
+      var list = [];
+
+      function addBuses(arr, vip) {
+        var name = vip ? "VIP Luxury Bus" : "Umrah Bus (Normal)";
+        var basket = arr.map(function (p, i) {
+          return {
+            src: p.src,
+            alt: name + " — photo " + (i + 1) + " of " + arr.length,
+            hotel: { name: name },
+            title: name,
+            meta: vip ? "VIP Bus · Makkah & Madinah service" : "Normal Bus · Air-conditioned Umrah coach",
+            caption: name + " — photo " + (i + 1) + " of " + arr.length
+          };
+        });
+        arr.forEach(function (p, i) {
+          list.push({
+            src: p.src,
+            flag: (vip ? "VIP Bus" : "Normal Bus") + " · photo " + (i + 1) + " of " + arr.length,
+            alt: (vip ? "VIP luxury bus" : "Air-conditioned Umrah bus") + " — photo " + (i + 1),
+            basket: basket,
+            at: i
+          });
+        });
+      }
+
+      function addHotel(entry) {
+        var h = entry.hotel;
+        var rooms = entry.photos.length - 1;
+        var basket = entry.photos.map(function (p, i) {
+          return {
+            src: p.src,
+            alt: h.name + (i ? " room photo " + i : " hotel view"),
+            hotel: h,
+            title: h.name,
+            meta: h.stars + " Star Hotel · Makkah",
+            caption: h.name + " — " + (i ? "room photo " + i + " of " + rooms : "hotel view")
+          };
+        });
+        entry.photos.forEach(function (p, i) {
+          list.push({
+            src: p.src,
+            flag: h.name + " · " + (i ? "room " + i + " of " + rooms : "hotel view"),
+            alt: h.name + (i ? " room photo " + i : " hotel view"),
+            basket: basket,
+            at: i
+          });
+        });
+      }
+
+      if (buses.normal.length) addBuses(buses.normal, false);
+      if (buses.vip.length) addBuses(buses.vip, true);
+      hotels.forEach(function (entry) { if (entry.photos.length) addHotel(entry); });
+
+      photos = list;
+      if (!photos.length) return;
+
+      box.setAttribute("data-count", photos.length);
+      dotsOn = !!dots && photos.length <= MAX_DOTS;
+      if (dots && !dotsOn) dots.hidden = true;
+      if (!dotsOn) {
+        counter = document.createElement("span");
+        counter.className = "bus-count";
+        box.appendChild(counter);
+      }
+
+      photos.forEach(function (p, i) {
+        var slide = document.createElement("div");
+        slide.className = "bus-slide" + (i === 0 ? " is-active" : "");
+        slide.setAttribute("role", "button");
+        slide.setAttribute("tabindex", "0");
+        slide.setAttribute("title", "Click to view full size");
+        slide.setAttribute("data-src", p.src);
+        slide.innerHTML = '<img alt="' + p.alt + '">';
+        slide.addEventListener("click", function () { openPhoto(i); });
+        slide.addEventListener("keydown", function (e) {
+          if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openPhoto(i); }
+        });
+        stage.appendChild(slide);
+
+        if (dotsOn) {
+          var d = document.createElement("button");
+          d.type = "button";
+          d.className = "bus-dot" + (i === 0 ? " is-active" : "");
+          d.setAttribute("aria-label", "Show photo " + (i + 1) + " of " + photos.length);
+          d.addEventListener("click", function () { show(i); start(); });
+          dots.appendChild(d);
+        }
+      });
+
+      show(0);
+      start();
+    }
+
+    /* Photos are read as 1.jpg, 2.jpg, 3.jpg … inside each folder */
+    function probe(base, max, done) {
+      var found = [];
+      var n = 1;
+      (function next() {
+        if (n > max) return done(found);
+        var src = base + n + ".jpg";
+        var im = new Image();
+        im.onload = function () { found.push({ n: n, src: src }); n++; next(); };
+        im.onerror = function () { done(found); };
+        im.src = src;
+      })();
+    }
+
+    var buses = { normal: [], vip: [] };
+    var hotels = [];                       // [{ hotel: …, photos: [{n, src}] }]
+    var pending = 2 + HOTELS.length;
+
+    function ready() {
+      if (--pending) return;
+
+      /* 10, 11, 12 first, then the rest of the normal fleet */
+      var first = [];
+      FIRST_UP.forEach(function (num) {
+        for (var i = 0; i < buses.normal.length; i++) {
+          if (buses.normal[i].n === num) { first.push(buses.normal.splice(i, 1)[0]); break; }
+        }
+      });
+      buses.normal = first.concat(buses.normal);
+
+      build();
+    }
+
+    probe("assets/img/buses/normal/", 20, function (l) { buses.normal = l; ready(); });
+    probe("assets/img/buses/vip/", 20, function (l) { buses.vip = l; ready(); });
+    HOTELS.forEach(function (h) {
+      var entry = { hotel: h, photos: [] };
+      hotels.push(entry);
+      probe("assets/img/hotels/" + h.slug + "/", HOTEL_MAX_PHOTOS, function (l) { entry.photos = l; ready(); });
+    });
+
+    if (prevBtn) prevBtn.addEventListener("click", function () { show(idx - 1); start(); });
+    if (nextBtn) nextBtn.addEventListener("click", function () { show(idx + 1); start(); });
+
+    box.addEventListener("mouseenter", function () { hovering = true; });
+    box.addEventListener("mouseleave", function () { hovering = false; });
+    box.addEventListener("focusin", function () { hovering = true; });
+    box.addEventListener("focusout", function () { hovering = false; });
+    box.addEventListener("pointerdown", function () { hovering = true; });
+  })();
+
   /* ---------------- 16. SEO-ish: current year + active nav safe-guard ---- */
   var path = (location.pathname.split("/").pop() || "index.html").toLowerCase();
   $$(".main-nav a").forEach(function (a) {

@@ -433,17 +433,22 @@ p { max-width: 68ch; }
 .hero-slide {
   position: absolute; inset: 0;
   opacity: 0;
-  transform: scale(1.06);
-  transition: opacity 1.6s var(--ease), transform 12s linear;
+  transform: scale(1);
+  transition: opacity 1.6s var(--ease), transform 14s linear;
 }
-.hero-slide.is-active { opacity: 1; transform: scale(1.14); }
-.hero-slide img { width: 100%; height: 100%; object-fit: cover; }
+.hero-slide.is-active { opacity: 1; transform: scale(1.07); }
+.hero-slide img {
+  width: 100%; height: 100%; object-fit: cover;
+  /* bright + clear photo, so every detail of the mosque / bus reads well;
+     the smaller zoom range keeps it sharp */
+  filter: brightness(1.12) contrast(1.06) saturate(1.08);
+}
 
 .hero-scrim {
   position: absolute; inset: 0; z-index: -1;
   background:
-    linear-gradient(180deg, rgba(14,14,16,.7) 0%, rgba(14,14,16,.4) 30%, rgba(14,14,16,.84) 82%, var(--ink) 100%),
-    linear-gradient(90deg, rgba(14,14,16,.7), rgba(14,14,16,.1) 62%);
+    linear-gradient(180deg, rgba(14,14,16,.52) 0%, rgba(14,14,16,.24) 32%, rgba(14,14,16,.7) 84%, var(--ink) 100%),
+    linear-gradient(90deg, rgba(14,14,16,.62), rgba(14,14,16,.04) 66%);
 }
 .hero-pattern { display: none; }
 
@@ -1628,7 +1633,7 @@ p { max-width: 68ch; }
 .gl-track[data-gl-track="vip"] .gl-slide:hover img,
 .gl-track[data-gl-track="normal"] .gl-slide:hover img { transform: scale(1.045); }
 
-/* ---------- BUS CAROUSELS (home page) ---------- */ */
+/* ---------- BUS CAROUSELS (home page) ---------- */
 .bus-carousel {
   position: relative;
   width: 100%;
@@ -1639,8 +1644,8 @@ p { max-width: 68ch; }
   background: var(--paper-3);
 }
 .bus-stage { position: absolute; inset: 0; }
-.bus-slide { position: absolute; inset: 0; opacity: 0; transition: opacity .65s var(--ease); }
-.bus-slide.is-active { opacity: 1; }
+.bus-slide { position: absolute; inset: 0; opacity: 0; pointer-events: none; transition: opacity .65s var(--ease); }
+.bus-slide.is-active { opacity: 1; pointer-events: auto; }
 .bus-slide img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .bus-flag {
   position: absolute;
@@ -1694,6 +1699,35 @@ p { max-width: 68ch; }
 .bus-dot.is-active { background: #fff; transform: scale(1.25); }
 .bus-carousel[data-count="1"] .bus-nav,
 .bus-carousel[data-count="1"] .bus-dots { display: none; }
+
+.bus-dots[hidden] { display: none; }
+.bus-count {
+  position: absolute;
+  right: 14px; bottom: 14px;
+  z-index: 3;
+  font-family: var(--font-mono);
+  font-size: .64rem;
+  letter-spacing: .12em;
+  padding: 6px 11px;
+  border-radius: var(--r-xs);
+  background: rgba(10,10,12,.55);
+  color: #fff;
+}
+
+/* the about-section carousel (bus fleet → hotel rooms) — dots sit bottom-right
+   so they never run under the "Daily Bus Service from Riyadh" badge */
+.split-media .bus-dots {
+  left: auto;
+  right: 14px;
+  max-width: 62%;
+  gap: 5px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  padding-left: 12px;
+}
+.split-media .bus-dot { width: 7px; height: 7px; }
+.split-media .bus-flag { max-width: 76%; }
+.split-media .bus-count { right: 12px; bottom: 12px; }
 
 /* ---------- MAKKAH HOTELS (home page) ---------- */
 .hotel-grid {
@@ -2239,6 +2273,7 @@ p { max-width: 68ch; }
   .split { grid-template-columns: 1fr; }
   .split--reverse .split-media { order: 0; }
   .split-media .floating-badge { position: static; display: inline-flex; margin-top: 16px; }
+  .split-media .bus-dots { display: none; }
   .hero { align-items: flex-start; }
   .hero-stats { grid-template-columns: repeat(2, minmax(0,1fr)); }
   .hero-stat { padding: 16px 18px 0; border-left: 0; border-top: 1px solid var(--line-onDark); }
