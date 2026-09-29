@@ -437,7 +437,6 @@ p { max-width: 68ch; }
   transition: opacity 1.6s var(--ease), transform 14s linear;
 }
 .hero-slide.is-active { opacity: 1; transform: scale(1.07); }
-.hero-slide picture { display: block; width: 100%; height: 100%; }
 .hero-slide img {
   width: 100%; height: 100%; object-fit: cover;
   /* bright + clear photo, so every detail of the mosque / bus reads well;
@@ -446,7 +445,7 @@ p { max-width: 68ch; }
 }
 /* Phones: the hero frame is much taller than it is wide, so the landscape photos
    were being cut down to a narrow slice (only a wheel / window of the coach was
-   visible). ≤760px the slider loads portrait crops instead (assets/img/hero/*
+   visible). ≤760px `main.js` loads the portrait crops instead (assets/img/hero/*
    .jpg — Kaaba, Masjid an-Nabawi and the coaches framed for a phone screen), so
    the subject stays complete and centred. */
 @media (max-width: 760px) {
@@ -2356,6 +2355,155 @@ p { max-width: 68ch; }
   .hotel-nav--prev { left: 8px; }
   .hotel-nav--next { right: 8px; }
 }
+
+/* ---------- 27. UMRAH GUIDE PAGE ---------- */
+/* In-page jump chips (top of the guide) */
+.pill-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.pill {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: .68rem;
+  font-weight: 500;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  padding: 9px 15px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--ink-600);
+  text-decoration: none;
+  transition: all .2s var(--ease);
+}
+.pill:hover { background: var(--ink); border-color: var(--ink); color: #fff; }
+
+/* Numbered ritual blocks (Tawaf, Sa'i, luggage, children …) */
+.guide-steps { display: grid; gap: 18px; }
+.guide-step {
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--paper);
+  padding: clamp(20px, 2.6vw, 30px);
+}
+.grid--2 .guide-step { height: 100%; }
+.guide-step-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 6px;
+}
+.guide-step-head h3 { margin: 0; }
+.guide-num {
+  flex: none;
+  width: 42px; height: 42px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  background: var(--ink);
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: .82rem;
+  font-weight: 500;
+}
+
+/* Bullet lists inside the guide */
+.guide-list { display: grid; gap: 11px; margin-top: 14px; }
+.guide-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  font-size: .95rem;
+  line-height: 1.6;
+  color: var(--ink-600);
+}
+.guide-list li svg { width: 16px; height: 16px; flex: none; margin-top: 5px; color: var(--brand); }
+.guide-list--no li svg { color: var(--brand-600); }
+.guide-list b { color: var(--ink); font-weight: 600; }
+.guide-list a { color: var(--brand); text-decoration: underline; }
+
+.muted { color: var(--ink-400); }
+
+/* Arabic dua block */
+.dua-box {
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--gold);
+  border-radius: var(--r-xs);
+  background: var(--paper-2);
+  padding: 20px 22px;
+}
+.dua-box .eyebrow { font-size: .6rem; }
+.dua-box .ar {
+  direction: rtl;
+  text-align: right;
+  font-family: "Noto Naskh Arabic", "Segoe UI", "Traditional Arabic", serif;
+  font-size: clamp(1.15rem, 2.2vw, 1.42rem);
+  line-height: 2.1;
+  color: var(--ink);
+  margin: 0;
+  max-width: none;
+}
+.dua-box .tr { font-size: .8rem; font-style: italic; color: var(--ink-400); margin-top: 14px; max-width: none; }
+.dua-box .mn { font-size: .92rem; color: var(--ink-600); margin-top: 6px; max-width: none; }
+
+/* Gates table */
+.gate-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--paper);
+  -webkit-overflow-scrolling: touch;
+}
+.gate-table { width: 100%; min-width: 620px; border-collapse: collapse; font-size: .93rem; }
+.gate-table th,
+.gate-table td {
+  text-align: left;
+  vertical-align: top;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line);
+  line-height: 1.6;
+}
+.gate-table th {
+  font-family: var(--font-mono);
+  font-size: .64rem;
+  font-weight: 500;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--ink-500);
+  background: var(--paper-2);
+}
+.gate-table td { color: var(--ink-600); }
+.gate-table tr:last-child td { border-bottom: 0; }
+.gate-table td b { color: var(--ink); }
+.gate-no {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  color: var(--brand);
+  white-space: nowrap;
+}
+
+/* Call-out box */
+.note-box {
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--brand);
+  border-radius: var(--r-xs);
+  background: var(--paper-2);
+  padding: 18px 20px;
+  font-size: .94rem;
+  line-height: 1.7;
+  color: var(--ink-600);
+}
+.section--sand .note-box { background: var(--paper); }
+.note-box b { color: var(--ink); }
+
+/* Sticky header must not cover the anchored headings */
+#before, #steps, #gates, #hateem, #luggage, #elderly, #tips, #faq {
+  scroll-margin-top: calc(var(--header-h) + 24px);
+}
+
+/* Dark-section (Hateem) tweaks for the shared check-list */
+.section--ink .check-list { border-top-color: var(--line-onDark); }
+.section--ink .check-list li { color: rgba(255,255,255,.8); border-bottom-color: var(--line-onDark); }
+.section--ink .check-list li b { color: #fff; }
+.section--ink .check-list svg { color: var(--gold-300); }
 
 /* ---------- 26. PRINT ---------- */
 @media print {
