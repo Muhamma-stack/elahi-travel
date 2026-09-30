@@ -292,5 +292,5 @@ The placeholder photos are freely licensed. Replace them with your own photos to
 | `places/green-dome.jpg` | Wikimedia Commons | GFDL 1.2 | Muhammad Mahdi Karim |
 | `hotels/hotel-5star.jpg` | Wikimedia Commons | CC0 | SilverBullet X |
 | `buses/coach-interior.jpg` | Wikimedia Commons | CC BY-SA 2.0 | Atomic Taco |
-| `places/mosque-dusk.jpg`, `buses/vip-bus.jpg`, `buses/coach-bus.jpg`, `hotels/hotel-3star.jpg`, `hotels/hotel-4star.jpg` | Unsplash | Unsplash License | Unsplash contributors |
-| `assets/logo.jfif` | Supplied by Al-Elahi Travels | — | — |
+| `places/mosque-dusk.jpg`, `buses/vip-bus.jpg`, `buses/coach-bus.jpg`, `hotels/hotel-3star.jpg`, `hotels/hotel-4star.jpg` | Unsplash | Unsplash License | Unsplash contributors || `family/family-haram.jpg` | Pexels (photo 34303915) | Pexels License | Free for commercial use, no attribution required |
+| `family/family-kaaba.jpg` | Pexels (photo 8059351) | Pexels License | Free for commercial use, no attribution required || `assets/logo.jfif` | Supplied by Al-Elahi Travels | — | — |

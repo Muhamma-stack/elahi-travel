@@ -1572,13 +1572,22 @@
       makkah:  ["makkah-1.jpg", "makkah-2.jpg"],
       madinah: ["madinah-1.jpg", "madinah-2.jpg", "madinah-3.jpg"],
       both:    ["both-1.jpg", "both-2.jpg"],
-      vip:     ["vip-1.jpg", "vip-2.jpg"]
+      vip:     ["vip-1.jpg", "vip-2.jpg"],
+      /* family trips use variants that also show a family in the collage */
+      "makkah-family":  ["makkah-family-1.jpg", "makkah-family-2.jpg"],
+      "madinah-family": ["madinah-family-1.jpg", "madinah-family-2.jpg"],
+      "both-family":    ["both-family-1.jpg", "both-family-2.jpg"],
+      "vip-family":     ["vip-family-1.jpg"]
     };
     var ALT = {
       makkah:  "Al-Elahi Travels Umrah package — our coach and Masjid al-Haram in Makkah",
       madinah: "Al-Elahi Travels Umrah package — our coach and Masjid an-Nabawi in Madinah",
       both:    "Al-Elahi Travels Umrah package — our coach, Makkah and Madinah",
-      vip:     "Al-Elahi Travels VIP Umrah package — our luxury coach and Masjid al-Haram"
+      vip:     "Al-Elahi Travels VIP Umrah package — our luxury coach and Masjid al-Haram",
+      "makkah-family":  "Al-Elahi Travels family Umrah package — a family at Masjid al-Haram and our coach",
+      "madinah-family": "Al-Elahi Travels family Umrah package — a family at Masjid an-Nabawi and our coach",
+      "both-family":    "Al-Elahi Travels family Umrah package — a family, Makkah, Madinah and our coach",
+      "vip-family":     "Al-Elahi Travels VIP family Umrah package — a family at Masjid al-Haram and our luxury coach"
     };
 
     var ICON_HOTEL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 19v-7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v7"/><path d="M3 19h18M7 10V7.5A1.5 1.5 0 0 1 8.5 6h3A1.5 1.5 0 0 1 13 7.5V10M16 10V7.5A1.5 1.5 0 0 1 17.5 6h1"/></svg>';
@@ -1638,6 +1647,15 @@
       var timeVal = isVip
         ? TIME_VIP
         : (!btn && /pakistan/i.test(labelText)) ? "" : TIME_NORMAL;
+
+      /* Family trips swap in a variant of the collage that shows a family
+         between the destination and the coach. NOTE: the VIP Bus cards carry
+         TWO `.pkg-tag--type` chips ("VIP Bus" + "Family"/"Bachelors"), so every
+         chip has to be checked — not just the first one. */
+      var isFamily = $$(".pkg-tag--type, .pkg-tag--green", card).some(function (el) {
+        return /family/i.test(el.textContent);
+      });
+      if (isFamily && SETS[set + "-family"]) set = set + "-family";
 
       var media = document.createElement("div");
       media.className = "pkg-media";
