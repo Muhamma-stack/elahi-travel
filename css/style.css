@@ -2808,7 +2808,7 @@ p { max-width: 66ch; }
 /* Arabic line + English subline, bottom-left of the photo */
 .pkg-media-copy {
   position: absolute;
-  left: 14px; bottom: 13px; right: 58px;
+  left: 14px; bottom: 13px; right: 14px;
   z-index: 2;
   color: #fff;
   text-shadow: 0 1px 12px rgba(0, 0, 0, .55);
@@ -2831,23 +2831,6 @@ p { max-width: 66ch; }
   text-transform: uppercase;
   color: rgba(255, 255, 255, .82);
 }
-
-/* circular chevron, bottom-right of the photo */
-.pkg-media-arrow {
-  position: absolute;
-  right: 12px; bottom: 12px;
-  z-index: 2;
-  width: 34px; height: 34px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, .93);
-  color: var(--ink);
-  box-shadow: 0 3px 12px rgba(0, 0, 0, .28);
-  transition: background .22s var(--ease), color .22s var(--ease), transform .22s var(--ease);
-}
-.pkg-media-arrow svg { width: 16px; height: 16px; }
-.pkg:hover .pkg-media-arrow { background: var(--brand); color: #fff; transform: translateX(3px); }
 
 .pkg-top { padding: 20px 22px 0; background: #fff; border-bottom: 0; }
 .pkg-top h3 { font-size: 1.2rem; margin-bottom: 8px; }
@@ -3224,8 +3207,6 @@ p { max-width: 66ch; }
   .pkg-media-brand { font-size: .64rem; padding: 5px 10px; }
   .pkg-media-copy b { font-size: .94rem; }
   .pkg-media-copy span { font-size: .6rem; letter-spacing: .06em; }
-  .pkg-media-arrow { width: 30px; height: 30px; right: 10px; bottom: 10px; }
-  .pkg-media-copy { left: 12px; bottom: 11px; right: 50px; }
   .pkg-meta { gap: 13px; }
   .tabs { gap: 8px; }
   .tab { padding: 10px 16px; font-size: .84rem; }

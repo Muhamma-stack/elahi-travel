@@ -1583,7 +1583,6 @@
 
     var ICON_HOTEL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 19v-7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v7"/><path d="M3 19h18M7 10V7.5A1.5 1.5 0 0 1 8.5 6h3A1.5 1.5 0 0 1 13 7.5V10M16 10V7.5A1.5 1.5 0 0 1 17.5 6h1"/></svg>';
     var ICON_BUS   = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h14M6 17V9.5a2 2 0 0 1 .6-1.4l1.5-1.5A2 2 0 0 1 9.5 6h5a2 2 0 0 1 1.4.6l1.5 1.5A2 2 0 0 1 18 9.5V17"/><path d="M3 17h18M6 12h12"/><circle cx="8.5" cy="17" r="1.6"/><circle cx="15.5" cy="17" r="1.6"/></svg>';
-    var ICON_ARROW = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>';
     var ICON_CLOCK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg>';
 
     /* Bus timings — the same wording is repeated inside the booking modal
@@ -1645,8 +1644,7 @@
         '<img src="' + P + pick(set) + '" alt="' + ALT[set] + '" loading="lazy" decoding="async">' +
         '<span class="pkg-media-brand">Al-Elahi Travels</span>' +
         '<span class="pkg-media-copy"><b>' + AR_LINE + '</b>' +
-          '<span>A complete spiritual journey</span></span>' +
-        '<span class="pkg-media-arrow">' + ICON_ARROW + '</span>';
+          '<span>A complete spiritual journey</span></span>';
       card.insertBefore(media, card.firstChild);
 
       /* green location pill, in front of the card's own duration / type pills */
