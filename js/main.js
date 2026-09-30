@@ -457,42 +457,44 @@
     return !bad;
   }
 
-  /* Departure time — the Normal Bus runs 10:00 → 19:00, the VIP Bus 10:00 → 14:00.
-     The window is written onto the input (min/max), so the browser's own
-     validation blocks anything outside it, and a value typed outside the new
-     window is snapped back when the bus type is switched. */
+  /* Departure time — the coaches leave ON THE HOUR, so this is an hour-only
+     dropdown (no minutes, no seconds): the Normal Bus runs 10:00 AM → 7:00 PM,
+     the VIP Bus 10:00 AM → 2:00 PM. The list is rebuilt when the bus changes. */
   var timeField = $("#bkTime");
   var timeHint  = $("[data-time-hint]");
 
-  function timeWindow() {
-    return isVipBus() ? { min: "10:00", max: "14:00" } : { min: "10:00", max: "19:00" };
+  var TIME_SLOTS_NORMAL = ["10:00", "11:00", "12:00", "13:00", "14:00",
+                           "15:00", "16:00", "17:00", "18:00", "19:00"];
+  var TIME_SLOTS_VIP    = ["10:00", "11:00", "12:00", "13:00", "14:00"];
+
+  function timeSlots() { return isVipBus() ? TIME_SLOTS_VIP : TIME_SLOTS_NORMAL; }
+
+  function buildTimeOptions() {
+    if (!timeField || timeField.tagName !== "SELECT") return;
+    var list = timeSlots();
+    var keep = timeField.value;
+    var html = '<option value="">Select hour</option>';
+    list.forEach(function (v) {
+      html += '<option value="' + v + '">' + fmt12(v) + '</option>';
+    });
+    timeField.innerHTML = html;
+    timeField.value = list.indexOf(keep) >= 0 ? keep : "";
   }
 
+  /* a value left over from the other bus type is no longer selectable */
   function clampTime() {
     if (!timeField) return;
-    var w = timeWindow();
-    if (!timeField.value) return;
-    if (timeField.value < w.min) timeField.value = w.min;
-    if (timeField.value > w.max) timeField.value = w.max;
+    if (timeField.value && timeSlots().indexOf(timeField.value) < 0) timeField.value = "";
   }
 
   function applyTimeWindow() {
     if (!timeField) return;
-    var vip = isVipBus();
-    var w = timeWindow();
-    timeField.min = w.min;
-    timeField.max = w.max;
     if (timeHint) {
-      timeHint.innerHTML = vip
-        ? "VIP bus departs between <b>10:00 AM</b> and <b>2:00 PM</b>."
-        : "Normal bus departs between <b>10:00 AM</b> and <b>7:00 PM</b>.";
+      timeHint.innerHTML = isVipBus()
+        ? "VIP bus leaves on the hour, between <b>10:00 AM</b> and <b>2:00 PM</b>."
+        : "Normal bus leaves on the hour, between <b>10:00 AM</b> and <b>7:00 PM</b>.";
     }
-    clampTime();
-  }
-
-  if (timeField) {
-    timeField.addEventListener("change", clampTime);
-    timeField.addEventListener("blur", clampTime);
+    buildTimeOptions();
   }
 
   /* VIP packages offer the VIP Bus only, every other package only the Normal Bus
