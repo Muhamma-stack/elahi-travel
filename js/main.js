@@ -1643,10 +1643,10 @@
       }
 
       /* timings — VIP cards show the Mon/Thu window, the rest the daily one.
-         The Pakistan showcase card is a flight package, so it gets none. */
-      var timeVal = isVip
-        ? TIME_VIP
-        : (!btn && /pakistan/i.test(labelText)) ? "" : TIME_NORMAL;
+         The Pakistan packages (the #pakistan panel and the home-page showcase
+         card) are a flight product, so they get no bus-timing pill at all. */
+      var isPakistan = !!card.closest("#pakistan") || (!btn && /pakistan/i.test(labelText));
+      var timeVal = isVip ? TIME_VIP : (isPakistan ? "" : TIME_NORMAL);
 
       /* Family trips swap in a variant of the collage that shows a family
          between the destination and the coach. NOTE: the VIP Bus cards carry
