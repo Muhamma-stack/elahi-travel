@@ -2755,7 +2755,9 @@ p { max-width: 66ch; }
 }
 .pkg:hover { border-color: var(--line); transform: translateY(-4px); box-shadow: var(--sh-2); }
 
-/* the photo header — injected on page load by `main.js` §17 */
+/* The photo header — a pre-made collage (destination + one of our coaches),
+   injected by `main.js` §17, with the Al-Elahi wordmark, an Arabic line and a
+   chevron laid over it. The scrim is baked into the collage itself. */
 .pkg-media {
   position: relative;
   aspect-ratio: 16 / 10;
@@ -2768,24 +2770,78 @@ p { max-width: 66ch; }
   display: block;
   transition: transform .7s var(--ease);
 }
-.pkg:hover .pkg-media img { transform: scale(1.05); }
-.pkg-media::after {
-  content: "";
-  position: absolute; inset: 0;
-  background: linear-gradient(180deg, rgba(20, 20, 22, 0) 52%, rgba(20, 20, 22, .5));
-}
-.pkg-media-tag {
+.pkg:hover .pkg-media img { transform: scale(1.045); }
+
+/* Al-Elahi wordmark, top-left of the photo */
+.pkg-media-brand {
   position: absolute;
-  left: 14px; bottom: 13px;
+  top: 12px; left: 12px;
   z-index: 2;
-  padding: 6px 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px;
   border-radius: var(--r-pill);
-  background: var(--gold-tint);
-  color: #8A6100;
-  font-size: .73rem;
+  background: rgba(20, 20, 22, .45);
+  border: 1px solid rgba(255, 255, 255, .3);
+  -webkit-backdrop-filter: blur(6px);
+          backdrop-filter: blur(6px);
+  color: #fff;
+  font-size: .7rem;
   font-weight: 700;
-  letter-spacing: .01em;
+  letter-spacing: .03em;
 }
+.pkg-media-brand::before {
+  content: "";
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--brand-400);
+  flex: none;
+}
+
+/* Arabic line + English subline, bottom-left of the photo */
+.pkg-media-copy {
+  position: absolute;
+  left: 14px; bottom: 13px; right: 58px;
+  z-index: 2;
+  color: #fff;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, .55);
+}
+.pkg-media-copy b {
+  display: block;
+  font-family: "Noto Naskh Arabic", "Segoe UI", var(--font-body);
+  font-size: 1.06rem;
+  font-weight: 700;
+  line-height: 1.4;
+  direction: rtl;
+  text-align: left;
+}
+.pkg-media-copy span {
+  display: block;
+  margin-top: 3px;
+  font-size: .66rem;
+  font-weight: 600;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, .82);
+}
+
+/* circular chevron, bottom-right of the photo */
+.pkg-media-arrow {
+  position: absolute;
+  right: 12px; bottom: 12px;
+  z-index: 2;
+  width: 34px; height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .93);
+  color: var(--ink);
+  box-shadow: 0 3px 12px rgba(0, 0, 0, .28);
+  transition: background .22s var(--ease), color .22s var(--ease), transform .22s var(--ease);
+}
+.pkg-media-arrow svg { width: 16px; height: 16px; }
+.pkg:hover .pkg-media-arrow { background: var(--brand); color: #fff; transform: translateX(3px); }
 
 .pkg-top { padding: 20px 22px 0; background: #fff; border-bottom: 0; }
 .pkg-top h3 { font-size: 1.2rem; margin-bottom: 8px; }
@@ -2803,6 +2859,9 @@ p { max-width: 66ch; }
 }
 .pkg-tags { gap: 8px; margin-bottom: 14px; }
 .pkg-tag--type { background: var(--paper-3); color: var(--ink-600); }
+/* location pill — the one place a second accent colour is allowed (it echoes
+   the green dome in the logo, and the reference card UI) */
+.pkg-tag--place { background: #E6F5EC; color: #1B7A45; }
 .pkg-tag--vip,
 .pkg-tag--green { background: var(--gold-tint); color: #8A6100; }
 .pkg-duration { font-size: .82rem; color: var(--ink-500); }
@@ -2826,6 +2885,27 @@ p { max-width: 66ch; }
 .pkg-features li { font-size: .875rem; color: var(--ink-500); }
 .pkg-foot { padding-top: 16px; border-top: 1px solid var(--line-soft); }
 .pkg-quote { font-size: .72rem; letter-spacing: 0; color: var(--ink-400); }
+/* price block on the left, action on the right (reference layout) */
+.pkg-foot .pkg-quote { order: -1; margin-right: auto; }
+
+/* hotel + bus row, under the card title */
+.pkg-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line-soft);
+}
+.pkg-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: .8rem;
+  font-weight: 500;
+  color: var(--ink-500);
+}
+.pkg-meta-item svg { width: 16px; height: 16px; color: var(--brand); flex: none; }
 
 .pkg--feature::before { display: none; }
 .pkg--feature .pkg-top { padding: 22px 26px 0; }
@@ -3116,6 +3196,12 @@ p { max-width: 66ch; }
   .card { padding: 22px 18px; }
   .pkg-top { padding: 18px 18px 0; }
   .pkg-body { padding: 14px 18px 20px; }
+  .pkg-media-brand { font-size: .64rem; padding: 5px 10px; }
+  .pkg-media-copy b { font-size: .94rem; }
+  .pkg-media-copy span { font-size: .6rem; letter-spacing: .06em; }
+  .pkg-media-arrow { width: 30px; height: 30px; right: 10px; bottom: 10px; }
+  .pkg-media-copy { left: 12px; bottom: 11px; right: 50px; }
+  .pkg-meta { gap: 13px; }
   .tabs { gap: 8px; }
   .tab { padding: 10px 16px; font-size: .84rem; }
   .faq-item summary { padding: 16px 18px; }

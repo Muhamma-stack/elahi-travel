@@ -1495,39 +1495,46 @@
     box.addEventListener("pointerdown", function () { holdUntil = Date.now() + 9000; });
   })();
 
-  /* ---------------- 17. PACKAGE CARD PHOTOS ----------------
-     The package cards (packages.html + the two showcase cards on the home
-     page) are authored without an <img>. This drops a photo header into every
-     one of them: the destination photo for the trip (Makkah / Madinah / both),
-     the VIP coach for VIP packages, the normal coach otherwise. The photos
-     cycle inside each group, so two neighbouring cards never repeat a shot.
-     `loading="lazy"` keeps the ~40 extra images off the initial load. */
+  /* ---------------- 17. PACKAGE CARD PHOTO ----------------
+     The package cards are authored without an <img>. This drops a designed
+     photo header into each one: a pre-made collage of the trip's destination
+     (Makkah, Madinah, or the two side by side) and one of our own coaches —
+     see `assets/img/packages/` and the repo notes for how they are built.
+     Over the photo it lays the Al-Elahi Travels wordmark, the Arabic line
+     ("a complete spiritual journey") and a chevron; then a green location
+     pill in front of the card's own pills, and a hotel / bus row under the
+     title. Same shape as the reference package card.
+     `loading="lazy"` keeps the extra images off the initial load.        */
   (function () {
     var cards = $$(".pkg");
     if (!cards.length) return;
 
-    var M = "assets/img/places/";
-    var V = "assets/img/buses/vip/";
-    var N = "assets/img/buses/normal/";
+    var P = "assets/img/packages/";
 
+    /* two or three collages per group, cycled so neighbours never repeat */
     var SETS = {
-      makkah:  [M + "kaaba.jpg", M + "haram-aerial.jpg", M + "mosque-dusk.jpg"],
-      madinah: [M + "masjid-an-nabawi-madinah.jpg", M + "masjid-an-nabawi.jpg"],
-      both:    [M + "masjid-an-nabawi-madinah.jpg", M + "kaaba.jpg", M + "haram-aerial.jpg"],
-      normal:  [N + "3.jpg", N + "5.jpg", N + "7.jpg", N + "9.jpg", N + "12.jpg", N + "14.jpg"],
-      vip:     [V + "1.jpg", V + "2.jpg", V + "4.jpg", V + "6.jpg", V + "8.jpg"]
+      makkah:  ["makkah-1.jpg", "makkah-2.jpg"],
+      madinah: ["madinah-1.jpg", "madinah-2.jpg", "madinah-3.jpg"],
+      both:    ["both-1.jpg", "both-2.jpg"],
+      vip:     ["vip-1.jpg", "vip-2.jpg"]
     };
     var ALT = {
-      makkah:  "Masjid al-Haram in Makkah",
-      madinah: "Masjid an-Nabawi in Madinah",
-      both:    "Masjid al-Haram in Makkah and Masjid an-Nabawi in Madinah",
-      normal:  "Air-conditioned Umrah bus at the departure point",
-      vip:     "VIP luxury Umrah coach"
+      makkah:  "Al-Elahi Travels Umrah package — our coach and Masjid al-Haram in Makkah",
+      madinah: "Al-Elahi Travels Umrah package — our coach and Masjid an-Nabawi in Madinah",
+      both:    "Al-Elahi Travels Umrah package — our coach, Makkah and Madinah",
+      vip:     "Al-Elahi Travels VIP Umrah package — our luxury coach and Masjid al-Haram"
     };
+
+    var ICON_HOTEL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 19v-7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v7"/><path d="M3 19h18M7 10V7.5A1.5 1.5 0 0 1 8.5 6h3A1.5 1.5 0 0 1 13 7.5V10M16 10V7.5A1.5 1.5 0 0 1 17.5 6h1"/></svg>';
+    var ICON_BUS   = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h14M6 17V9.5a2 2 0 0 1 .6-1.4l1.5-1.5A2 2 0 0 1 9.5 6h5a2 2 0 0 1 1.4.6l1.5 1.5A2 2 0 0 1 18 9.5V17"/><path d="M3 17h18M6 12h12"/><circle cx="8.5" cy="17" r="1.6"/><circle cx="15.5" cy="17" r="1.6"/></svg>';
+    var ICON_ARROW = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>';
+
+    /* تجربة روحانية شاملة — “a complete spiritual journey” */
+    var AR_LINE = "\u062a\u062c\u0631\u0628\u0629 \u0631\u0648\u062d\u0627\u0646\u064a\u0629 \u0634\u0627\u0645\u0644\u0629";
 
     var used = {};
 
-    function take(set) {
+    function pick(set) {
       var list = SETS[set];
       var i = (used[set] || 0) % list.length;
       used[set] = (used[set] || 0) + 1;
@@ -1537,13 +1544,16 @@
     cards.forEach(function (card) {
       if (card.querySelector(".pkg-media")) return;
 
-      var busEl  = card.querySelector("[data-bus]");
-      var destEl = card.querySelector("[data-dest]");
-      var busVal  = busEl  ? (busEl.getAttribute("data-bus")   || "") : "";
-      var destVal = destEl ? (destEl.getAttribute("data-dest") || "") : "";
+      var btn      = card.querySelector("[data-bus]");
+      var destEl   = card.querySelector("[data-dest]");
+      var busVal   = btn    ? (btn.getAttribute("data-bus")     || "") : "";
+      var hotelVal = btn    ? (btn.getAttribute("data-hotel")   || "") : "";
+      var destVal  = destEl ? (destEl.getAttribute("data-dest") || "") : "";
 
+      var isVip = /vip/i.test(busVal);
       var set, tag;
-      if (/vip/i.test(busVal)) {
+
+      if (isVip) {
         set = "vip";      tag = "VIP Bus";
       } else if (/madinah only/i.test(destVal)) {
         set = "madinah";  tag = "Madinah";
@@ -1552,20 +1562,44 @@
       } else if (/makkah only/i.test(destVal)) {
         set = "makkah";   tag = "Makkah";
       } else {
-        /* the two home-page showcase cards already carry their own label pill
-           (`.pkg-tag`) in the card body, so the photo gets no second tag */
+        /* the two home-page showcase cards already carry a label pill of their
+           own, so the photo gets only the brand + Arabic overlays.
+           Riyadh serves Makkah, Pakistan serves both holy cities. */
         var label = card.querySelector(".pkg-tag--green") || card.querySelector(".pkg-tag");
         var text = label ? label.textContent.replace(/\s+/g, " ").trim() : "";
+        set = /pakistan/i.test(text) ? "both" : "makkah";
         tag = null;
-        set = /pakistan/i.test(text) ? "makkah" : "normal";
       }
 
       var media = document.createElement("div");
       media.className = "pkg-media";
       media.innerHTML =
-        '<img src="' + take(set) + '" alt="' + ALT[set] + '" loading="lazy" decoding="async">' +
-        (tag ? '<span class="pkg-media-tag">' + tag + '</span>' : "");
+        '<img src="' + P + pick(set) + '" alt="' + ALT[set] + '" loading="lazy" decoding="async">' +
+        '<span class="pkg-media-brand">Al-Elahi Travels</span>' +
+        '<span class="pkg-media-copy"><b>' + AR_LINE + '</b>' +
+          '<span>A complete spiritual journey</span></span>' +
+        '<span class="pkg-media-arrow">' + ICON_ARROW + '</span>';
       card.insertBefore(media, card.firstChild);
+
+      /* green location pill, in front of the card's own duration / type pills */
+      var tags = card.querySelector(".pkg-tags");
+      if (tags && tag) {
+        var place = document.createElement("span");
+        place.className = "pkg-tag pkg-tag--place";
+        place.textContent = tag;
+        tags.insertBefore(place, tags.firstChild);
+      }
+
+      /* hotel + bus row, under the card title */
+      var anchor = card.querySelector(".pkg-duration") || card.querySelector(".pkg-top h3");
+      if (anchor && (hotelVal || busVal)) {
+        var meta = document.createElement("div");
+        meta.className = "pkg-meta";
+        meta.innerHTML =
+          (hotelVal ? '<span class="pkg-meta-item">' + ICON_HOTEL + hotelVal + ' Hotel</span>' : "") +
+          (busVal   ? '<span class="pkg-meta-item">' + ICON_BUS   + busVal   + '</span>'           : "");
+        anchor.parentNode.insertBefore(meta, anchor.nextSibling);
+      }
     });
   })();
 
