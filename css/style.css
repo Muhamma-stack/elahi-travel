@@ -1,10 +1,10 @@
 /* =====================================================================
    AL-ELAHI TRAVELS
    ---------------------------------------------------------------------
-   Design language: simple card UI — one accent blue on white, soft grey
-   section bands, deep navy for the dark surfaces, rounded cards with a
-   single soft shadow. Palette:
-     blue #3366FF  ·  navy #061E47  ·  white  ·  grey #F5F7FB
+   Design language: simple card UI — one accent colour on white, soft grey
+   section bands, near-black for the dark surfaces, rounded cards with a
+   single soft shadow. Palette taken from the logo (red · black · gold):
+     red #C3111A  ·  black #141416  ·  white  ·  grey #F5F5F6
    (Section 28 at the bottom of this file re-skins the components to that
    language — see the note there.)
    ===================================================================== */
@@ -13,37 +13,37 @@
 :root {
   /* ---- text ---- */
   --ink:      #1A1A1A;
-  --ink-900:  #0A2A5E;
-  --ink-800:  #23304A;
-  --ink-700:  #3A4763;
-  --ink-600:  #4B5565;
-  --ink-500:  #667085;
-  --ink-400:  #98A2B3;
-  --ink-300:  #C6CDD9;
+  --ink-900:  #1E1E22;
+  --ink-800:  #2A2A2F;
+  --ink-700:  #3A3A40;
+  --ink-600:  #4A4A52;
+  --ink-500:  #6B6B75;
+  --ink-400:  #9A9AA4;
+  --ink-300:  #C9C9D1;
 
   /* ---- surfaces ---- */
   --paper:    #FFFFFF;
   --paper-2:  #FFFFFF;
-  --paper-3:  #F5F7FB;
-  --navy:     #061E47;
-  --navy-700: #0A2A5E;
+  --paper-3:  #F5F5F6;
+  --dark:     #141416;   /* the logo black */
+  --dark-700: #1E1E22;
 
-  /* ---- the one accent colour ---- */
-  --brand:       #3366FF;
-  --brand-700:   #1F41AD;
-  --brand-600:   #2A55D9;
-  --brand-400:   #7A9CFF;
-  --brand-tint:  #EEF3FF;
+  /* ---- the one accent colour (the logo red) ---- */
+  --brand:       #C3111A;
+  --brand-700:   #8B0A11;
+  --brand-600:   #A50D15;
+  --brand-400:   #E8453F;
+  --brand-tint:  #FBEDEC;
 
-  /* warm secondary — kept for the VIP / warning chips */
-  --gold:       #E0A800;
-  --gold-300:   #A9C5FF;
-  --gold-tint:  #FFF4DA;
+  /* warm secondary — the Kaaba's gold band, kept for the VIP / warning chips */
+  --gold:       #D3A32B;
+  --gold-300:   #E4C57C;
+  --gold-tint:  #FDF1D9;
 
   /* hairlines */
-  --line:         #E7EAF0;
-  --line-soft:    #F1F3F8;
-  --line-strong:  #CFD6E2;
+  --line:         #E8E8EB;
+  --line-soft:    #F2F2F4;
+  --line-strong:  #CFCFD6;
   --line-onDark:  rgba(255, 255, 255, .16);
 
   /* geometry — soft, rounded cards */
@@ -54,8 +54,8 @@
   --r-pill: 999px;
 
   /* elevation */
-  --sh-1: 0 1px 2px rgba(16, 24, 40, .05), 0 6px 18px rgba(16, 24, 40, .06);
-  --sh-2: 0 14px 34px rgba(16, 24, 40, .12);
+  --sh-1: 0 1px 2px rgba(20, 20, 22, .05), 0 6px 18px rgba(20, 20, 22, .07);
+  --sh-2: 0 14px 34px rgba(20, 20, 22, .13);
 
   /* type */
   --font-display: "Poppins", "Segoe UI", system-ui, -apple-system, sans-serif;
@@ -2515,11 +2515,11 @@ p { max-width: 68ch; }
 .section--ink .check-list svg { color: var(--gold-300); }
 
 /* =====================================================================
-   28. SIMPLE CARD THEME  (blue · white · navy)
+   28. SIMPLE CARD THEME  (logo red · white · black)
    ---------------------------------------------------------------------
    Re-skins the components above to a flat, card-based UI: white page,
-   soft grey section bands, ONE accent blue, deep navy for the dark
-   surfaces, rounded corners and a single soft shadow per surface.
+   soft grey section bands, ONE accent red (the logo colour), near-black
+   for the dark surfaces, rounded corners and a single soft shadow.
    Nothing here adds or moves markup — class names, ids and every piece
    of `main.js` behaviour stay exactly as they were.
    ===================================================================== */
@@ -2529,11 +2529,11 @@ body { background: var(--paper); color: var(--ink-600); }
 body::after { display: none; }                 /* drop the paper grain */
 .section--sand { background: var(--paper-3); }
 .section--ink,
-.section--green { background: var(--navy); }
-.trust-strip { background: var(--navy-700); border-color: transparent; }
+.section--green { background: var(--dark); }
+.trust-strip { background: var(--dark-700); border-color: transparent; }
 .trust-strip .trust-item { color: rgba(255, 255, 255, .72); }
 .trust-item svg { color: var(--brand-400); }
-.site-footer { background: var(--navy); border-top: 0; }
+.site-footer { background: var(--dark); border-top: 0; }
 
 /* ---------- 28.2 TYPE ---------- */
 h1 { font-size: clamp(2.1rem, 4.4vw, 3.4rem); line-height: 1.1; letter-spacing: -.02em; }
@@ -2571,11 +2571,11 @@ p { max-width: 66ch; }
 .btn--brand, .btn--gold {
   background: var(--brand);
   color: #fff;
-  box-shadow: 0 4px 14px rgba(51, 102, 255, .24);
+  box-shadow: 0 4px 14px rgba(195, 17, 26, .22);
 }
 .btn--brand:hover, .btn--gold:hover { background: var(--brand-600); }
 .btn--green { background: var(--brand-tint); color: var(--brand); }
-.btn--green:hover { background: #DFE9FF; }
+.btn--green:hover { background: #F7DEDC; }
 .btn--outline { background: #fff; border-color: var(--line-strong); color: var(--ink); }
 .btn--outline:hover { background: var(--brand); border-color: var(--brand); color: #fff; }
 .btn--ghost { border-color: rgba(255, 255, 255, .55); }
@@ -2624,26 +2624,26 @@ p { max-width: 66ch; }
 .nav-toggle { border-color: var(--line); }
 .nav-toggle:hover { border-color: var(--brand); background: var(--brand-tint); }
 .nav-toggle span { background: var(--ink); }
-.nav-backdrop { background: rgba(6, 30, 71, .55); }
+.nav-backdrop { background: rgba(20, 20, 22, .55); }
 
 /* ---------- 28.5 HERO + PAGE HERO ---------- */
-.hero { background: var(--navy); }
+.hero { background: var(--dark); }
 .hero-scrim {
   background:
-    linear-gradient(180deg, rgba(6, 30, 71, .42) 0%, rgba(6, 30, 71, .10) 30%, rgba(6, 30, 71, .52) 78%, rgba(6, 30, 71, .88) 100%),
-    linear-gradient(90deg, rgba(6, 30, 71, .34), rgba(6, 30, 71, 0) 58%);
+    linear-gradient(180deg, rgba(20, 20, 22, .42) 0%, rgba(20, 20, 22, .10) 30%, rgba(20, 20, 22, .52) 78%, rgba(20, 20, 22, .9) 100%),
+    linear-gradient(90deg, rgba(20, 20, 22, .34), rgba(20, 20, 22, 0) 58%);
 }
 .hero-badge { font-size: .72rem; font-weight: 600; letter-spacing: .14em; }
 .hero-badge .pulse { background: #7CFFB2; }
 .hero h1 { max-width: 20ch; }
-.hero h1 em { font-style: normal; color: #BFD6FF; }
+.hero h1 em { font-style: normal; color: var(--gold-300); }
 .hero-sub { font-size: .82rem; letter-spacing: .12em; text-transform: none; }
 .hero-note { font-size: 1rem; color: rgba(255, 255, 255, .86); }
 .hero-stat b { font-size: clamp(1.4rem, 2.2vw, 1.9rem); }
 .hero-stat span { font-size: .7rem; letter-spacing: .12em; text-transform: none; }
 
-.page-hero { background: var(--navy); }
-.page-hero::before { background: linear-gradient(180deg, rgba(6, 30, 71, .88), rgba(6, 30, 71, .95)); }
+.page-hero { background: var(--dark); }
+.page-hero::before { background: linear-gradient(180deg, rgba(20, 20, 22, .88), rgba(20, 20, 22, .95)); }
 .page-hero img.bg { opacity: .34; }
 .crumbs [aria-current] { color: #fff; }
 
@@ -2709,7 +2709,7 @@ p { max-width: 66ch; }
   background: var(--brand);
   border-color: var(--brand);
   color: #fff;
-  box-shadow: 0 4px 14px rgba(51, 102, 255, .24);
+  box-shadow: 0 4px 14px rgba(195, 17, 26, .22);
 }
 .tab .count { font-size: .74rem; color: inherit; opacity: .7; }
 .tab.is-active .count { color: #fff; opacity: .85; }
@@ -2728,14 +2728,14 @@ p { max-width: 66ch; }
   background: var(--brand);
   border-color: var(--brand);
   color: #fff;
-  box-shadow: 0 4px 14px rgba(51, 102, 255, .24);
+  box-shadow: 0 4px 14px rgba(195, 17, 26, .22);
 }
 
 .panel-note {
   gap: 14px;
   padding: 16px 20px;
   background: var(--brand-tint);
-  border: 1px solid #DCE6FF;
+  border: 1px solid #F3D8D6;
   border-left: 4px solid var(--brand);
   border-radius: var(--r-sm);
   color: var(--ink-600);
@@ -2772,7 +2772,7 @@ p { max-width: 66ch; }
 .pkg-media::after {
   content: "";
   position: absolute; inset: 0;
-  background: linear-gradient(180deg, rgba(6, 30, 71, 0) 52%, rgba(6, 30, 71, .55));
+  background: linear-gradient(180deg, rgba(20, 20, 22, 0) 52%, rgba(20, 20, 22, .5));
 }
 .pkg-media-tag {
   position: absolute;
@@ -2881,13 +2881,13 @@ p { max-width: 66ch; }
   border-radius: 50%;
   background: rgba(255, 255, 255, .94);
   color: var(--ink);
-  box-shadow: 0 3px 12px rgba(6, 30, 71, .22);
+  box-shadow: 0 3px 12px rgba(20, 20, 22, .22);
 }
 .bus-nav:hover { background: var(--brand); border-color: var(--brand); color: #fff; }
 .bus-count {
   padding: 6px 13px;
   border-radius: var(--r-pill);
-  background: rgba(6, 30, 71, .72);
+  background: rgba(20, 20, 22, .72);
   font-family: var(--font-body);
   font-size: .72rem;
   letter-spacing: .02em;
@@ -2987,7 +2987,7 @@ p { max-width: 66ch; }
 .form-card > h3 { font-size: 1.5rem; }
 .field label, .field .label { font-family: var(--font-body); font-size: .74rem; font-weight: 600; letter-spacing: .06em; color: var(--ink-600); }
 .input, .select, .textarea { border-radius: var(--r-sm); padding: 13px 15px; }
-.input:focus, .select:focus, .textarea:focus { box-shadow: 0 0 0 3px rgba(51, 102, 255, .15); }
+.input:focus, .select:focus, .textarea:focus { box-shadow: 0 0 0 3px rgba(195, 17, 26, .14); }
 .chip span { border-radius: var(--r-pill); padding: 10px 16px; }
 .chip input:checked + span { background: var(--brand); border-color: var(--brand); color: #fff; }
 .date-chip { border-radius: var(--r-pill); }
@@ -2998,8 +2998,8 @@ p { max-width: 66ch; }
 .total-pill { border-radius: var(--r-pill); font-family: var(--font-body); font-size: .74rem; letter-spacing: .02em; text-transform: none; }
 .bus-note { border-radius: var(--r-sm); }
 
-.modal { background: rgba(6, 30, 71, .62); }
-.modal-dialog { border: 0; border-radius: var(--r-lg); box-shadow: 0 30px 70px rgba(6, 30, 71, .35); }
+.modal { background: rgba(20, 20, 22, .62); }
+.modal-dialog { border: 0; border-radius: var(--r-lg); box-shadow: 0 30px 70px rgba(20, 20, 22, .35); }
 .modal-head { border-bottom: 1px solid var(--line-soft); }
 .modal-head h3 { font-size: 1.55rem; }
 .modal-close { border-radius: 50%; }
@@ -3069,7 +3069,7 @@ p { max-width: 66ch; }
   .main-nav.is-open {
     background: #fff;
     border-left: 1px solid var(--line);
-    box-shadow: -18px 0 50px rgba(6, 30, 71, .18);
+    box-shadow: -18px 0 50px rgba(20, 20, 22, .18);
   }
   .main-nav.is-open .drawer-head { border-bottom-color: var(--line); }
   .main-nav.is-open .drawer-title { font-family: var(--font-body); font-size: .72rem; font-weight: 700; letter-spacing: .12em; color: var(--ink-400); }
