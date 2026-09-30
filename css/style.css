@@ -1310,6 +1310,12 @@ p { max-width: 68ch; }
 }
 
 .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+/* the modal puts Mobile | Travel Date | Departure Time on one row, so the
+   timing sits right next to the date it belongs to */
+.field-row--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 760px) {
+  .field-row--3 { grid-template-columns: 1fr; }
+}
 
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .chip { position: relative; }

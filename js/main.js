@@ -457,6 +457,44 @@
     return !bad;
   }
 
+  /* Departure time — the Normal Bus runs 10:00 → 19:00, the VIP Bus 10:00 → 14:00.
+     The window is written onto the input (min/max), so the browser's own
+     validation blocks anything outside it, and a value typed outside the new
+     window is snapped back when the bus type is switched. */
+  var timeField = $("#bkTime");
+  var timeHint  = $("[data-time-hint]");
+
+  function timeWindow() {
+    return isVipBus() ? { min: "10:00", max: "14:00" } : { min: "10:00", max: "19:00" };
+  }
+
+  function clampTime() {
+    if (!timeField) return;
+    var w = timeWindow();
+    if (!timeField.value) return;
+    if (timeField.value < w.min) timeField.value = w.min;
+    if (timeField.value > w.max) timeField.value = w.max;
+  }
+
+  function applyTimeWindow() {
+    if (!timeField) return;
+    var vip = isVipBus();
+    var w = timeWindow();
+    timeField.min = w.min;
+    timeField.max = w.max;
+    if (timeHint) {
+      timeHint.innerHTML = vip
+        ? "VIP bus departs between <b>10:00 AM</b> and <b>2:00 PM</b>."
+        : "Normal bus departs between <b>10:00 AM</b> and <b>7:00 PM</b>.";
+    }
+    clampTime();
+  }
+
+  if (timeField) {
+    timeField.addEventListener("change", clampTime);
+    timeField.addEventListener("blur", clampTime);
+  }
+
   /* VIP packages offer the VIP Bus only, every other package only the Normal Bus
      (and "Madinah Only" is always served by the Normal Bus) */
   var vipAllowed = false;
@@ -518,6 +556,7 @@
     }
 
     checkVipDate();
+    applyTimeWindow();
     markVipChip();
   }
 
@@ -604,6 +643,14 @@
     var el = document.querySelector('input[name="' + name + '"]:checked');
     return el ? el.value : "";
   }
+  function fmt12(hhmm) {
+    var p = String(hhmm).split(":");
+    if (p.length < 2) return hhmm;
+    var h = parseInt(p[0], 10), m = p[1];
+    var ap = h >= 12 ? "PM" : "AM";
+    var h12 = h % 12; if (!h12) h12 = 12;
+    return h12 + ":" + m + " " + ap;
+  }
 
   function buildMessage() {
     var men = parseInt(val("bkMen"), 10) || 0;
@@ -616,6 +663,7 @@
     L.push("*Package:* " + (val("bkPackage") || "General Inquiry"));
     L.push("*Full Name:* " + (val("bkName") || "-"));
     L.push("*Travel Date:* " + (val("bkDate") || "-"));
+    L.push("*Departure Time:* " + (val("bkTime") ? fmt12(val("bkTime")) : "-"));
     L.push("*Mobile / WhatsApp:* " + (val("bkMobile") || "-"));
     if (val("bkIqama")) L.push("*Iqama / ID:* " + val("bkIqama"));
     L.push("");
@@ -665,6 +713,8 @@
         if (dateField) dateField.focus();
         return;
       }
+      // departure time has to sit inside the bus's window
+      clampTime();
 
       var men = parseInt(val("bkMen"), 10) || 0;
       var women = parseInt(val("bkWomen"), 10) || 0;
@@ -690,6 +740,7 @@
         if (dateField) dateField.focus();
         return;
       }
+      clampTime();
       var msg = "Assalam o Alaikum, I would like to inquire about an Umrah package.\n\n" + buildMessage();
       window.open("https://wa.me/" + CONFIG.whatsapp + "?text=" + encodeURIComponent(msg), "_blank", "noopener");
     });

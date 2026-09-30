@@ -491,7 +491,7 @@
           <label for="bkName">Full Name <span class="req">*</span></label>
           <input class="input" type="text" id="bkName" name="bkName" placeholder="Enter your full name" required autocomplete="name">
         </div>
-        <div class="field-row">
+        <div class="field-row field-row--3">
           <div class="field">
             <label for="bkMobile">Mobile Number (WhatsApp) <span class="req">*</span></label>
             <input class="input" type="tel" id="bkMobile" name="bkMobile" placeholder="+966 5X XXX XXXX" required autocomplete="tel">
@@ -504,6 +504,11 @@
               <div class="date-quick-list" data-vip-dates-list></div>
             </div>
             <p class="field-error" data-date-error hidden>This service does not run on this day. Please choose a Monday or Thursday.</p>
+          </div>
+          <div class="field">
+            <label for="bkTime">Departure Time <span class="req">*</span></label>
+            <input class="input" type="time" id="bkTime" name="bkTime" min="10:00" max="19:00" step="1800" required>
+            <p class="dest-hint" data-time-hint>Normal bus departs between <b>10:00 AM</b> and <b>7:00 PM</b>.</p>
           </div>
         </div>
         <div class="field-row">
