@@ -1584,6 +1584,7 @@
     var ICON_HOTEL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 19v-7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v7"/><path d="M3 19h18M7 10V7.5A1.5 1.5 0 0 1 8.5 6h3A1.5 1.5 0 0 1 13 7.5V10M16 10V7.5A1.5 1.5 0 0 1 17.5 6h1"/></svg>';
     var ICON_BUS   = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h14M6 17V9.5a2 2 0 0 1 .6-1.4l1.5-1.5A2 2 0 0 1 9.5 6h5a2 2 0 0 1 1.4.6l1.5 1.5A2 2 0 0 1 18 9.5V17"/><path d="M3 17h18M6 12h12"/><circle cx="8.5" cy="17" r="1.6"/><circle cx="15.5" cy="17" r="1.6"/></svg>';
     var ICON_CLOCK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg>';
+    var ICON_WA = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.47 14.38c-.3-.15-1.75-.86-2.02-.96-.27-.1-.47-.15-.67.15-.2.3-.77.96-.94 1.16-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.6-.92-2.2-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.01-1.04 2.47 0 1.46 1.06 2.87 1.21 3.07.15.2 2.1 3.2 5.08 4.49.71.31 1.26.49 1.69.63.71.23 1.36.19 1.87.12.57-.09 1.75-.72 2-1.41.25-.69.25-1.28.17-1.41-.07-.13-.27-.2-.57-.35zM12.05 21.5h-.01a9.4 9.4 0 0 1-4.79-1.31l-.34-.2-3.56.93.95-3.47-.22-.36a9.38 9.38 0 0 1-1.44-5.01c0-5.18 4.22-9.4 9.42-9.4a9.36 9.36 0 0 1 6.65 2.76 9.33 9.33 0 0 1 2.76 6.65c0 5.18-4.23 9.41-9.42 9.41zM20.13 3.86A11.35 11.35 0 0 0 12.05.5C5.78.5.68 5.6.68 11.87c0 2.01.53 3.98 1.53 5.71L.58 23.5l6.06-1.59a11.33 11.33 0 0 0 5.41 1.38h.01c6.27 0 11.37-5.1 11.37-11.37 0-3.04-1.18-5.9-3.3-8.06z"/></svg>';
 
     /* Bus timings — the same wording is repeated inside the booking modal
        (`.bus-note` / `.bus-note--time`). */
@@ -1666,6 +1667,27 @@
           (busVal   ? '<span class="pkg-meta-item">' + ICON_BUS   + busVal   + '</span>'           : "") +
           (timeVal  ? '<span class="pkg-meta-item pkg-meta-item--time">' + ICON_CLOCK + timeVal + '</span>' : "");
         anchor.parentNode.insertBefore(meta, anchor.nextSibling);
+      }
+
+      /* The Pakistan packages are arranged on WhatsApp, so there the Book Now
+         button is replaced by a WhatsApp icon button that opens a chat with
+         the package already written in. */
+      if (card.closest("#pakistan")) {
+        var bookBtn = card.querySelector("[data-book]");
+        if (bookBtn) {
+          var pkgName = bookBtn.getAttribute("data-book") || "Umrah Package";
+          var waLink = document.createElement("a");
+          waLink.className = "btn btn--wa";
+          waLink.href = "https://wa.me/" + CONFIG.whatsapp + "?text=" + encodeURIComponent(
+            "Assalam o Alaikum, I would like to book this Umrah package: " + pkgName
+          );
+          waLink.target = "_blank";
+          waLink.rel = "noopener";
+          waLink.title = "Book on WhatsApp";
+          waLink.setAttribute("aria-label", "Book " + pkgName + " on WhatsApp");
+          waLink.innerHTML = ICON_WA;
+          bookBtn.parentNode.replaceChild(waLink, bookBtn);
+        }
       }
     });
   })();

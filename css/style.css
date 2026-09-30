@@ -2589,6 +2589,21 @@ p { max-width: 66ch; }
 .btn--sm { padding: 10px 20px; font-size: .85rem; }
 .btn--block { width: 100%; }
 
+/* The Pakistan packages book straight on WhatsApp instead of the form, so
+   their action is the WhatsApp glyph in a green circle. */
+.btn--wa {
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  flex: none;
+  border-radius: 50%;
+  background: #25D366;
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(37, 211, 102, .3);
+}
+.btn--wa:hover { background: #1EBE5A; }
+.btn--wa svg { width: 23px; height: 23px; }
+
 /* ---------- 28.4 HEADER ---------- */
 .site-header,
 .site-header.is-stuck {
