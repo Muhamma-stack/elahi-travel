@@ -1096,8 +1096,10 @@
     });
 
     /* Kick off the photo scan (1.jpg, 2.jpg, 3.jpg … per hotel folder) — but only
-       when the gallery preview is about to be reached, never on page load. */
-    var scanAnchor = $("[data-gl-track='hotels']") || $(".gl-carousels") || $("#hotelModal");
+       when the hotel gallery / "view all" viewer is actually on the page, and only
+       once that anchor is about to be reached, never on page load. */
+    var hotelGallery = $("[data-gl-track='hotels']");
+    var scanAnchor = hotelGallery || ($("#hotelViewAll") ? hotelModal : null);
     if (scanAnchor) whenNear(scanAnchor, function () {
       scanFolders(HOTELS.map(function (hotel) {
         return function (next) {
@@ -1550,17 +1552,19 @@
       } else if (/makkah only/i.test(destVal)) {
         set = "makkah";   tag = "Makkah";
       } else {
-        /* the two home-page showcase cards carry no booking button */
+        /* the two home-page showcase cards already carry their own label pill
+           (`.pkg-tag`) in the card body, so the photo gets no second tag */
         var label = card.querySelector(".pkg-tag--green") || card.querySelector(".pkg-tag");
-        tag = label ? label.textContent.replace(/\s+/g, " ").trim() : "Umrah";
-        set = /pakistan/i.test(tag) ? "makkah" : "normal";
+        var text = label ? label.textContent.replace(/\s+/g, " ").trim() : "";
+        tag = null;
+        set = /pakistan/i.test(text) ? "makkah" : "normal";
       }
 
       var media = document.createElement("div");
       media.className = "pkg-media";
       media.innerHTML =
         '<img src="' + take(set) + '" alt="' + ALT[set] + '" loading="lazy" decoding="async">' +
-        '<span class="pkg-media-tag">' + tag + '</span>';
+        (tag ? '<span class="pkg-media-tag">' + tag + '</span>' : "");
       card.insertBefore(media, card.firstChild);
     });
   })();
