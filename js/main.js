@@ -366,6 +366,7 @@
   /* VIP bus departs only on Monday & Thursday (10:00 AM) —
      show the schedule note and offer those two days as date options */
   var vipNote = $("[data-vip-note]");
+  var normalNote = $("[data-normal-note]");
   var vipDateBox = $("[data-vip-dates]");
   var vipDateList = $("[data-vip-dates-list]");
   var dateErr = $("[data-date-error]");
@@ -504,6 +505,8 @@
     var mondayThursday = vip || medina;
 
     if (vipNote) vipNote.hidden = !vip;
+    /* the Normal Bus runs all day, so its timing note shows whenever VIP is off */
+    if (normalNote) normalNote.hidden = vip;
     if (destHint) destHint.hidden = !vip;
     if (madinahHint) madinahHint.hidden = !medina;
     if (vipDateBox) vipDateBox.hidden = !mondayThursday;
@@ -1528,6 +1531,12 @@
     var ICON_HOTEL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 19v-7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v7"/><path d="M3 19h18M7 10V7.5A1.5 1.5 0 0 1 8.5 6h3A1.5 1.5 0 0 1 13 7.5V10M16 10V7.5A1.5 1.5 0 0 1 17.5 6h1"/></svg>';
     var ICON_BUS   = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h14M6 17V9.5a2 2 0 0 1 .6-1.4l1.5-1.5A2 2 0 0 1 9.5 6h5a2 2 0 0 1 1.4.6l1.5 1.5A2 2 0 0 1 18 9.5V17"/><path d="M3 17h18M6 12h12"/><circle cx="8.5" cy="17" r="1.6"/><circle cx="15.5" cy="17" r="1.6"/></svg>';
     var ICON_ARROW = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>';
+    var ICON_CLOCK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg>';
+
+    /* Bus timings — the same wording is repeated inside the booking modal
+       (`.bus-note` / `.bus-note--time`). */
+    var TIME_NORMAL = "Daily · 10:00 AM – 7:00 PM";
+    var TIME_VIP    = "Mon & Thu · 10:00 AM – 2:00 PM";
 
     /* تجربة روحانية شاملة — “a complete spiritual journey” */
     var AR_LINE = "\u062a\u062c\u0631\u0628\u0629 \u0631\u0648\u062d\u0627\u0646\u064a\u0629 \u0634\u0627\u0645\u0644\u0629";
@@ -1551,6 +1560,8 @@
       var destVal  = destEl ? (destEl.getAttribute("data-dest") || "") : "";
 
       var isVip = /vip/i.test(busVal);
+      var labelEl = card.querySelector(".pkg-tag--green") || card.querySelector(".pkg-tag");
+      var labelText = labelEl ? labelEl.textContent.replace(/\s+/g, " ").trim() : "";
       var set, tag;
 
       if (isVip) {
@@ -1565,11 +1576,15 @@
         /* the two home-page showcase cards already carry a label pill of their
            own, so the photo gets only the brand + Arabic overlays.
            Riyadh serves Makkah, Pakistan serves both holy cities. */
-        var label = card.querySelector(".pkg-tag--green") || card.querySelector(".pkg-tag");
-        var text = label ? label.textContent.replace(/\s+/g, " ").trim() : "";
-        set = /pakistan/i.test(text) ? "both" : "makkah";
+        set = /pakistan/i.test(labelText) ? "both" : "makkah";
         tag = null;
       }
+
+      /* timings — VIP cards show the Mon/Thu window, the rest the daily one.
+         The Pakistan showcase card is a flight package, so it gets none. */
+      var timeVal = isVip
+        ? TIME_VIP
+        : (!btn && /pakistan/i.test(labelText)) ? "" : TIME_NORMAL;
 
       var media = document.createElement("div");
       media.className = "pkg-media";
@@ -1590,14 +1605,15 @@
         tags.insertBefore(place, tags.firstChild);
       }
 
-      /* hotel + bus row, under the card title */
+      /* hotel + bus + timing row, under the card title */
       var anchor = card.querySelector(".pkg-duration") || card.querySelector(".pkg-top h3");
-      if (anchor && (hotelVal || busVal)) {
+      if (anchor && (hotelVal || busVal || timeVal)) {
         var meta = document.createElement("div");
         meta.className = "pkg-meta";
         meta.innerHTML =
           (hotelVal ? '<span class="pkg-meta-item">' + ICON_HOTEL + hotelVal + ' Hotel</span>' : "") +
-          (busVal   ? '<span class="pkg-meta-item">' + ICON_BUS   + busVal   + '</span>'           : "");
+          (busVal   ? '<span class="pkg-meta-item">' + ICON_BUS   + busVal   + '</span>'           : "") +
+          (timeVal  ? '<span class="pkg-meta-item pkg-meta-item--time">' + ICON_CLOCK + timeVal + '</span>' : "");
         anchor.parentNode.insertBefore(meta, anchor.nextSibling);
       }
     });

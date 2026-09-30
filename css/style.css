@@ -2907,6 +2907,17 @@ p { max-width: 66ch; }
 }
 .pkg-meta-item svg { width: 16px; height: 16px; color: var(--brand); flex: none; }
 
+/* the bus timing — the one item in the row that gets a filled pill, because
+   people need to see it before they book */
+.pkg-meta-item--time {
+  padding: 5px 12px;
+  border-radius: var(--r-pill);
+  background: var(--brand-tint);
+  color: var(--brand);
+  font-weight: 600;
+}
+.pkg-meta-item--time svg { width: 15px; height: 15px; }
+
 .pkg--feature::before { display: none; }
 .pkg--feature .pkg-top { padding: 22px 26px 0; }
 .pkg--feature .pkg-body { padding: 16px 26px 26px; }
@@ -3077,6 +3088,14 @@ p { max-width: 66ch; }
 .people-box { border-radius: var(--r-sm); }
 .total-pill { border-radius: var(--r-pill); font-family: var(--font-body); font-size: .74rem; letter-spacing: .02em; text-transform: none; }
 .bus-note { border-radius: var(--r-sm); }
+/* the Normal-Bus counterpart of the VIP note — same shape, brand tint */
+.bus-note--time {
+  background: var(--brand-tint);
+  border-left-color: var(--brand);
+  color: var(--brand-700);
+}
+.bus-note--time svg { color: var(--brand); }
+.bus-note--time b { color: var(--ink); }
 
 .modal { background: rgba(20, 20, 22, .62); }
 .modal-dialog { border: 0; border-radius: var(--r-lg); box-shadow: 0 30px 70px rgba(20, 20, 22, .35); }
