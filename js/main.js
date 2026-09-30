@@ -1493,6 +1493,78 @@
     box.addEventListener("pointerdown", function () { holdUntil = Date.now() + 9000; });
   })();
 
+  /* ---------------- 17. PACKAGE CARD PHOTOS ----------------
+     The package cards (packages.html + the two showcase cards on the home
+     page) are authored without an <img>. This drops a photo header into every
+     one of them: the destination photo for the trip (Makkah / Madinah / both),
+     the VIP coach for VIP packages, the normal coach otherwise. The photos
+     cycle inside each group, so two neighbouring cards never repeat a shot.
+     `loading="lazy"` keeps the ~40 extra images off the initial load. */
+  (function () {
+    var cards = $$(".pkg");
+    if (!cards.length) return;
+
+    var M = "assets/img/places/";
+    var V = "assets/img/buses/vip/";
+    var N = "assets/img/buses/normal/";
+
+    var SETS = {
+      makkah:  [M + "kaaba.jpg", M + "haram-aerial.jpg", M + "mosque-dusk.jpg"],
+      madinah: [M + "masjid-an-nabawi-madinah.jpg", M + "masjid-an-nabawi.jpg"],
+      both:    [M + "masjid-an-nabawi-madinah.jpg", M + "kaaba.jpg", M + "haram-aerial.jpg"],
+      normal:  [N + "3.jpg", N + "5.jpg", N + "7.jpg", N + "9.jpg", N + "12.jpg", N + "14.jpg"],
+      vip:     [V + "1.jpg", V + "2.jpg", V + "4.jpg", V + "6.jpg", V + "8.jpg"]
+    };
+    var ALT = {
+      makkah:  "Masjid al-Haram in Makkah",
+      madinah: "Masjid an-Nabawi in Madinah",
+      both:    "Masjid al-Haram in Makkah and Masjid an-Nabawi in Madinah",
+      normal:  "Air-conditioned Umrah bus at the departure point",
+      vip:     "VIP luxury Umrah coach"
+    };
+
+    var used = {};
+
+    function take(set) {
+      var list = SETS[set];
+      var i = (used[set] || 0) % list.length;
+      used[set] = (used[set] || 0) + 1;
+      return list[i];
+    }
+
+    cards.forEach(function (card) {
+      if (card.querySelector(".pkg-media")) return;
+
+      var busEl  = card.querySelector("[data-bus]");
+      var destEl = card.querySelector("[data-dest]");
+      var busVal  = busEl  ? (busEl.getAttribute("data-bus")   || "") : "";
+      var destVal = destEl ? (destEl.getAttribute("data-dest") || "") : "";
+
+      var set, tag;
+      if (/vip/i.test(busVal)) {
+        set = "vip";      tag = "VIP Bus";
+      } else if (/madinah only/i.test(destVal)) {
+        set = "madinah";  tag = "Madinah";
+      } else if (/makkah\s*\+\s*madinah/i.test(destVal)) {
+        set = "both";     tag = "Makkah & Madinah";
+      } else if (/makkah only/i.test(destVal)) {
+        set = "makkah";   tag = "Makkah";
+      } else {
+        /* the two home-page showcase cards carry no booking button */
+        var label = card.querySelector(".pkg-tag--green") || card.querySelector(".pkg-tag");
+        tag = label ? label.textContent.replace(/\s+/g, " ").trim() : "Umrah";
+        set = /pakistan/i.test(tag) ? "makkah" : "normal";
+      }
+
+      var media = document.createElement("div");
+      media.className = "pkg-media";
+      media.innerHTML =
+        '<img src="' + take(set) + '" alt="' + ALT[set] + '" loading="lazy" decoding="async">' +
+        '<span class="pkg-media-tag">' + tag + '</span>';
+      card.insertBefore(media, card.firstChild);
+    });
+  })();
+
   /* ---------------- 16. SEO-ish: current year + active nav safe-guard ---- */
   var path = (location.pathname.split("/").pop() || "index.html").toLowerCase();
   $$(".main-nav a").forEach(function (a) {
