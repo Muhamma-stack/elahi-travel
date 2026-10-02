@@ -3441,10 +3441,35 @@ p { max-width: 66ch; }
 @media (max-width: 1200px) {
   .video-grid--4 { columns: 3; }
 }
+/* Phones / small tablets: the wall turns into ONE swipeable row (scroll-snap).
+   The negative inline margin lets the row bleed to both screen edges, so the
+   next clip peeks in from the right. */
 @media (max-width: 860px) {
+  .video-grid,
   .video-grid--1,
+  .video-grid--2,
   .video-grid--3,
-  .video-grid--4 { columns: 2; }
+  .video-grid--4 {
+    display: flex;
+    align-items: flex-start;
+    columns: auto;
+    gap: 14px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: clamp(20px, 4vw, 44px);
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+    margin-inline: calc(-1 * clamp(20px, 4vw, 44px));
+    padding-inline: clamp(20px, 4vw, 44px);
+    scrollbar-width: none;
+  }
+  .video-grid::-webkit-scrollbar { display: none; }
+  .vcard {
+    flex: 0 0 clamp(220px, 62vw, 330px);
+    margin-bottom: 0;
+    scroll-snap-align: start;
+  }
 }
 @media (max-width: 560px) {
   .vcard-play > span { width: 52px; height: 52px; }
