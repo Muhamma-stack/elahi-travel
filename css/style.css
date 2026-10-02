@@ -3077,6 +3077,14 @@ p { max-width: 66ch; }
 }
 .info-item a:hover { color: var(--brand); }
 
+/* The contact page no longer carries the inquiry form, so the info cards take
+   the whole row (two per line on desktop). */
+.contact-grid--single { grid-template-columns: minmax(0, 1fr); max-width: 980px; }
+.contact-grid--single .info-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 760px) {
+  .contact-grid--single .info-list { grid-template-columns: minmax(0, 1fr); }
+}
+
 /* ---------- 28.16 FORMS, CHIPS, MODAL ---------- */
 .form-card { border-radius: var(--r-lg); box-shadow: var(--sh-1); }
 .form-card > h3 { font-size: 1.5rem; }
