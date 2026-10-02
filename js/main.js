@@ -203,8 +203,8 @@
   /* ---------------- 5. HERO SLIDER ---------------- */
   var slides = $$(".hero-slide");
 
-  /* The five hero photos are ~1.2 MB together, so the page only fetches the first
-     one: the second follows right after and the rest when the browser is idle.
+  /* The hero photos are heavy, so the page only fetches the first one: the second
+     follows right after and the rest when the browser is idle.
      (≤760px the portrait crops marked data-src-m are used.) */
   function heroImageURL(im) {
     var mobile = window.matchMedia && window.matchMedia("(max-width: 760px)").matches;
