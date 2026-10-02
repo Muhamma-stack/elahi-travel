@@ -1894,12 +1894,15 @@
     /* Only look for clips once the band is about to be reached */
     whenNear(band, function () {
       scanVideos("assets/Videos/", MAX_VIDEOS, function (list) {
-        videos = list;
         if (!list.length) { band.hidden = true; return; }
+        /* The newest clip (highest number) is shown first — the rest keep their
+           order after it, so adding 5.mp4 later pushes it to the front. */
+        var last = list[list.length - 1];
+        videos = [last].concat(list.slice(0, -1));
         /* three clips → three columns, four or more → a full wall of four */
-        var cols = list.length >= 4 ? 4 : (list.length > 1 ? list.length : 3);
+        var cols = videos.length >= 4 ? 4 : (videos.length > 1 ? videos.length : 3);
         grid.classList.add("video-grid--" + cols);
-        list.forEach(function (v, i) { grid.appendChild(makeCard(v, i)); });
+        videos.forEach(function (v, i) { grid.appendChild(makeCard(v, i)); });
       });
     }, 500);
   })();
