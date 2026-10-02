@@ -3229,6 +3229,235 @@ p { max-width: 66ch; }
   .faq-a { padding: 0 18px 18px 48px; }
 }
 
+/* ---------- 28.22 VIDEO SHOWCASE ---------- */
+/* A wall of clip cards: the poster keeps its own shape (portrait phone clips
+   stay portrait, landscape ones stay wide), so nothing is ever cropped.
+   `main.js` §18 adds `.video-grid--N` so three clips fill three columns. */
+.video-grid { column-gap: clamp(14px, 1.5vw, 20px); }
+.video-grid--1 { columns: 3; }
+.video-grid--2 { columns: 2; }
+.video-grid--3 { columns: 3; }
+.video-grid--4 { columns: 4; }
+.vcard {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0;
+  margin: 0 0 clamp(14px, 1.5vw, 20px);
+  break-inside: avoid;
+  -webkit-column-break-inside: avoid;
+  border: 1px solid rgba(255, 255, 255, .12);
+  border-radius: var(--r-md);
+  background: #151518;
+  overflow: hidden;
+  color: #fff;
+  text-align: left;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(16px);
+  animation: vcardIn .55s var(--ease) forwards;
+  animation-delay: calc(var(--i, 0) * 90ms);
+}
+@keyframes vcardIn { to { opacity: 1; transform: none; } }
+.vcard:hover { border-color: rgba(255, 255, 255, .24); }
+.vcard:focus-visible { outline: 2px solid var(--brand-400); outline-offset: 3px; }
+
+.vcard-media {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  background: #0E0E11;
+  aspect-ratio: 4 / 5;                       /* fallback until the frame is known */
+}
+.vcard-media img,
+.vcard-media video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  border: 0;
+}
+.vcard-media img { transition: transform .8s var(--ease); }
+.vcard:hover .vcard-media img { transform: scale(1.05); }
+.vcard-media video { opacity: 0; transition: opacity .3s var(--ease); }
+.vcard.is-playing .vcard-media video { opacity: 1; }
+.vcard.is-playing .vcard-media img { transform: scale(1.02); }
+
+.vcard-scrim {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 58%;
+  background: linear-gradient(180deg, rgba(10, 10, 12, 0) 0%, rgba(10, 10, 12, .74) 62%, rgba(10, 10, 12, .93) 100%);
+  pointer-events: none;
+}
+.vcard-play {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+.vcard-play > span {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .95);
+  color: var(--brand);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, .4);
+  transition: transform .3s var(--ease), background .3s var(--ease), color .3s var(--ease);
+}
+.vcard-play svg { width: 20px; height: 20px; margin-left: 3px; }
+.vcard-play > span::after {
+  content: "";
+  position: absolute;
+  inset: -7px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, .5);
+  animation: vcardPulse 2.6s ease-out infinite;
+}
+@keyframes vcardPulse {
+  0%   { transform: scale(.85); opacity: .85; }
+  70%  { transform: scale(1.2); opacity: 0; }
+  100% { transform: scale(1.2); opacity: 0; }
+}
+.vcard:hover .vcard-play > span,
+.vcard:focus-visible .vcard-play > span { transform: scale(1.12); background: var(--brand); color: #fff; }
+.vcard.is-playing .vcard-play { opacity: 0; transition: opacity .25s var(--ease); }
+
+.vcard-bar {
+  position: absolute;
+  inset: auto 0 0 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 15px 16px;
+  font-family: var(--font-body);
+  font-size: .82rem;
+  font-weight: 600;
+  letter-spacing: .01em;
+}
+.vcard-tag {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 28px;
+  height: 24px;
+  border-radius: var(--r-pill);
+  background: var(--brand);
+  color: #fff;
+}
+.vcard-tag svg { width: 11px; height: 11px; margin-left: 1px; }
+.vcard-name { color: rgba(255, 255, 255, .9); }
+
+/* --- the full player --- */
+.modal-dialog.video-dialog {
+  max-width: var(--video-w, 940px);
+  background: #101013;
+  border-color: rgba(255, 255, 255, .12);
+}
+.video-head {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 74px 18px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, .12);
+}
+.video-head .eyebrow { width: auto; flex: none; margin: 0; color: var(--brand-400); }
+.video-head h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #fff;
+}
+.video-head .modal-close { top: 14px; right: 18px; border-color: rgba(255, 255, 255, .2); color: #fff; }
+.video-head .modal-close:hover { background: var(--brand); border-color: var(--brand); }
+.video-stage {
+  position: relative;
+  display: block;
+  margin: 0 auto;
+  max-width: 100%;
+  height: var(--video-h, min(62vh, 540px));
+  aspect-ratio: var(--video-ar, 16 / 9);
+  background: #000;
+}
+.video-stage video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+}
+.video-load {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  padding: 7px 16px;
+  border-radius: var(--r-pill);
+  background: rgba(255, 255, 255, .12);
+  color: rgba(255, 255, 255, .85);
+  font-family: var(--font-body);
+  font-size: .78rem;
+  font-weight: 600;
+  letter-spacing: .02em;
+}
+.video-foot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 16px 24px 20px;
+  border-top: 1px solid rgba(255, 255, 255, .12);
+}
+.video-count {
+  min-width: 66px;
+  text-align: center;
+  font-family: var(--font-body);
+  font-size: .84rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, .72);
+}
+.video-nav {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  flex: none;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, .2);
+  color: #fff;
+  transition: all .2s var(--ease);
+}
+.video-nav:hover { background: var(--brand); border-color: var(--brand); }
+.video-nav svg { width: 18px; height: 18px; }
+
+@media (max-width: 1200px) {
+  .video-grid--4 { columns: 3; }
+}
+@media (max-width: 860px) {
+  .video-grid--1,
+  .video-grid--3,
+  .video-grid--4 { columns: 2; }
+}
+@media (max-width: 560px) {
+  .vcard-play > span { width: 52px; height: 52px; }
+  .vcard-bar { padding: 12px 13px; font-size: .76rem; }
+  .vcard-name { display: none; }
+  .video-head { padding: 16px 64px 16px 18px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .vcard { animation: none; opacity: 1; transform: none; }
+  .vcard-play > span::after { animation: none; }
+  .vcard:hover .vcard-media img { transform: none; }
+}
+
 /* ---------- 26. PRINT ---------- */
 @media print {
   .site-header, .wa-float, .to-top, .modal, .nav-backdrop, .scroll-progress { display: none !important; }

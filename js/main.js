@@ -60,6 +60,33 @@
     })();
   }
 
+  /* Does a video folder hold 1.mp4, 2.mp4, 3.mp4 …? Same probe idea as the
+     photos, so a new clip only has to be dropped in under the next number.
+     Headless request → the file itself is never downloaded here. */
+  function scanVideos(base, max, done) {
+    var found = [];
+    var n = 1;
+    (function next() {
+      if (n > max) return done(found);
+      var clip = { n: n, src: base + n + ".mp4" };
+      function yes() { found.push(clip); n++; next(); }
+      function no() { done(found); }
+      if (CAN_HEAD) {
+        fetch(clip.src, { method: "HEAD", priority: "low" }).then(function (res) {
+          if (res.ok) yes(); else no();
+        })["catch"](no);
+      } else {
+        /* file:// preview: ask the browser to read just the clip's header */
+        var probe = document.createElement("video");
+        probe.preload = "metadata";
+        probe.muted = true;
+        probe.onloadedmetadata = yes;
+        probe.onerror = no;
+        probe.setAttribute("src", clip.src);
+      }
+    })();
+  }
+
   /* Scan a list of folders with a small concurrency: quick to finish, yet the
      browser's connections stay mostly free for the photos that are on screen. */
   function scanFolders(tasks, limit, done) {
@@ -1708,6 +1735,173 @@
         }
       }
     });
+  })();
+
+  /* ---------------- 18. VIDEO SHOWCASE (home page) ----------------
+     The clips are read as assets/Videos/1.mp4, 2.mp4, 3.mp4 … just like the
+     photo folders, with a matching poster in assets/img/video/1.jpg …, so a new
+     clip only has to be dropped in under the next number. Each card shows the
+     poster and plays a silent preview on hover; a click opens the full player
+     (with sound, controls and ←/→ to move through the clips). */
+  (function () {
+    var grid = $("[data-video-grid]");
+    if (!grid) return;
+
+    var band = grid.closest(".video-band") || grid;
+    var modal = $("#videoModal");
+    var player = $("#videoPlayer");
+    var titleEl = $("#videoTitle");
+    var countEl = $("#videoCounter");
+    var loadEl = $("#videoLoad");
+    var prevBtn = $("[data-video-prev]");
+    var nextBtn = $("[data-video-next]");
+
+    var MAX_VIDEOS = 12;
+    var videos = [];
+    var current = 0;
+    var stoppers = [];                                    // pause-preview hooks
+    var hoverOK = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+
+    var ICON_PLAY = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.14v13.72a1 1 0 0 0 1.5.86l11-6.86a1 1 0 0 0 0-1.72l-11-6.86A1 1 0 0 0 8 5.14z"/></svg>';
+
+    function posterOf(n) { return "assets/img/video/" + n + ".jpg"; }
+
+    function makeCard(v, i) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "vcard";
+      btn.style.setProperty("--i", i);
+      btn.setAttribute("aria-label", "Play Umrah journey video " + (i + 1) + " of " + videos.length);
+      btn.innerHTML =
+        '<span class="vcard-media">' +
+          '<video class="vcard-video" muted loop playsinline preload="none"></video>' +
+          '<img class="vcard-poster" src="' + posterOf(v.n) + '" alt="Umrah journey with Al-Elahi Travels — video ' + (i + 1) + '" loading="lazy">' +
+        '</span>' +
+        '<span class="vcard-scrim"></span>' +
+        '<span class="vcard-play"><span>' + ICON_PLAY + '</span></span>' +
+        '<span class="vcard-bar">' +
+          '<span class="vcard-tag">' + ICON_PLAY + '</span>' +
+          '<span class="vcard-name">Umrah Journey</span>' +
+        '</span>';
+
+      var media = $(".vcard-media", btn);
+      var poster = $(".vcard-poster", btn);
+      var vid = $(".vcard-video", btn);
+
+      /* the poster decides the frame, so a portrait clip never gets cropped */
+      poster.addEventListener("load", function () {
+        if (poster.naturalWidth) media.style.aspectRatio = poster.naturalWidth + " / " + poster.naturalHeight;
+      });
+      /* no poster made for this clip yet → let the video paint its own first frame */
+      poster.addEventListener("error", function () {
+        poster.style.display = "none";
+        vid.setAttribute("preload", "metadata");
+        if (!vid.getAttribute("src")) vid.setAttribute("src", v.src);
+      });
+      vid.addEventListener("loadedmetadata", function () {
+        if (vid.videoWidth && !media.style.aspectRatio) {
+          media.style.aspectRatio = vid.videoWidth + " / " + vid.videoHeight;
+        }
+      });
+
+      function preview() {
+        if (!hoverOK || (modal && modal.classList.contains("is-open"))) return;
+        if (!vid.getAttribute("src")) vid.setAttribute("src", v.src);
+        btn.classList.add("is-playing");
+        var p = vid.play();
+        if (p && p["catch"]) p["catch"](function () {});
+      }
+      function stopPreview() {
+        if (!btn.classList.contains("is-playing")) return;
+        btn.classList.remove("is-playing");
+        vid.pause();
+        try { vid.currentTime = 0; } catch (e) { /* not seekable yet */ }
+      }
+      stoppers.push(stopPreview);
+
+      btn.addEventListener("mouseenter", preview);
+      btn.addEventListener("mouseleave", stopPreview);
+      btn.addEventListener("focus", preview);
+      btn.addEventListener("blur", stopPreview);
+      btn.addEventListener("click", function () { openVideo(i); });
+      return btn;
+    }
+
+    function stopPreviews() { stoppers.forEach(function (fn) { fn(); }); }
+
+    /* --- the full player --- */
+    function openVideo(i) {
+      if (!videos.length) return;
+      stopPreviews();
+      current = ((i % videos.length) + videos.length) % videos.length;
+      var v = videos[current];
+
+      modal.classList.add("is-open");
+      modal.setAttribute("aria-hidden", "false");
+      document.body.style.overflow = "hidden";
+      if (loadEl) loadEl.hidden = false;
+      if (titleEl) titleEl.textContent = "Umrah Journey — Clip " + (current + 1);
+      if (countEl) countEl.textContent = (current + 1) + " / " + videos.length;
+
+      player.pause();
+      player.setAttribute("src", v.src);
+      player.load();
+      var p = player.play();
+      if (p && p["catch"]) p["catch"](function () {});
+    }
+
+    function closeVideo() {
+      modal.classList.remove("is-open");
+      modal.setAttribute("aria-hidden", "true");
+      document.body.style.overflow = "";
+      player.pause();
+      player.removeAttribute("src");       // stop buffering a 12–30 MB clip
+      player.load();
+      if (loadEl) loadEl.hidden = true;
+    }
+
+    function stepVideo(dir) { if (videos.length) openVideo(current + dir); }
+
+    /* Phone clips are portrait, so the player is sized from the clip itself:
+       a tall narrow box for portrait, a wide box for landscape. */
+    player.addEventListener("loadedmetadata", function () {
+      if (!player.videoWidth || !player.videoHeight) return;
+      var ar = player.videoWidth / player.videoHeight;
+      var narrow = window.matchMedia("(max-width: 560px)").matches;
+      modal.style.setProperty("--video-ar", player.videoWidth + " / " + player.videoHeight);
+      if (ar < 1) {
+        modal.style.setProperty("--video-w", "500px");
+        modal.style.setProperty("--video-h", narrow ? "min(64vh, 520px)" : "min(78vh, 760px)");
+      } else {
+        modal.style.setProperty("--video-w", "960px");
+        modal.style.setProperty("--video-h", narrow ? "min(52vh, 360px)" : "min(62vh, 540px)");
+      }
+    });
+    player.addEventListener("canplay", function () { if (loadEl) loadEl.hidden = true; });
+    player.addEventListener("error", function () { if (loadEl) loadEl.hidden = true; });
+
+    if (prevBtn) prevBtn.addEventListener("click", function () { stepVideo(-1); });
+    if (nextBtn) nextBtn.addEventListener("click", function () { stepVideo(1); });
+    $$("[data-video-close]").forEach(function (el) { el.addEventListener("click", closeVideo); });
+    modal.addEventListener("click", function (e) { if (e.target === modal) closeVideo(); });
+    window.addEventListener("keydown", function (e) {
+      if (!modal.classList.contains("is-open")) return;
+      if (e.key === "Escape") closeVideo();
+      if (e.key === "ArrowLeft") stepVideo(-1);
+      if (e.key === "ArrowRight") stepVideo(1);
+    });
+
+    /* Only look for clips once the band is about to be reached */
+    whenNear(band, function () {
+      scanVideos("assets/Videos/", MAX_VIDEOS, function (list) {
+        videos = list;
+        if (!list.length) { band.hidden = true; return; }
+        /* three clips → three columns, four or more → a full wall of four */
+        var cols = list.length >= 4 ? 4 : (list.length > 1 ? list.length : 3);
+        grid.classList.add("video-grid--" + cols);
+        list.forEach(function (v, i) { grid.appendChild(makeCard(v, i)); });
+      });
+    }, 500);
   })();
 
   /* ---------------- 16. SEO-ish: current year + active nav safe-guard ---- */

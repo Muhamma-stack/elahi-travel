@@ -234,6 +234,58 @@
     </div>
   </section>
 
+  <!-- ============ VIDEO SHOWCASE ============ -->
+  <!--  Clips are read as assets/Videos/1.mp4, 2.mp4, 3.mp4 … with matching
+        posters in assets/img/video/1.jpg, 2.jpg … — drop a new numbered file
+        in and it shows up here on its own (built by `main.js` §18). -->
+  <section class="section section--ink video-band">
+    <div class="wrap">
+      <div class="section-head" data-reveal>
+        <span class="eyebrow">Videos</span>
+        <h2>See the Journey Before You Book</h2>
+        <p>Real clips from our own trips — the coach, the road and the moments around the Haram. Tap any video to play it.</p>
+        <div class="divider"></div>
+      </div>
+
+      <div class="video-grid" data-video-grid></div>
+
+      <div class="section-cta" data-reveal>
+        <a class="btn btn--brand" href="https://wa.me/966536321755" target="_blank" rel="noopener">
+          Book Your Seat on WhatsApp
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- video player (opened from the showcase above) -->
+  <div class="modal video-modal" id="videoModal" role="dialog" aria-modal="true" aria-labelledby="videoTitle" aria-hidden="true">
+    <div class="modal-dialog video-dialog">
+      <div class="video-head">
+        <span class="eyebrow">Videos</span>
+        <h3 id="videoTitle">Umrah Journey</h3>
+        <button class="modal-close" type="button" data-video-close aria-label="Close video">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+
+      <div class="video-stage">
+        <video id="videoPlayer" controls playsinline preload="none"></video>
+        <span class="video-load" id="videoLoad">Loading video…</span>
+      </div>
+
+      <div class="video-foot">
+        <button class="video-nav" type="button" data-video-prev aria-label="Previous video">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <span class="video-count" id="videoCounter">1 / 1</span>
+        <button class="video-nav" type="button" data-video-next aria-label="Next video">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- ============ PACKAGES PREVIEW ============ -->
   <section class="section section--sand">
     <div class="wrap">
